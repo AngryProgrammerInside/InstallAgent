@@ -190,8 +190,11 @@ param (
 if ($DebugMode.IsPresent) {
   if (Get-Module InstallAgent-Core) {
     Remove-Module InstallAgent-Core
-    Remove-Item "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent" -Force -Recurse
-  }  
+  }
+  $reg = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent"
+  if (Test-Path $reg){
+    Remove-Item $reg -Recurse -Force
+  }
 }
 
 ### N-Central Constants

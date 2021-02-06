@@ -8,25 +8,46 @@
 function DebugInstallMethods {
     
     $paramOrder = @(
-        @{n='Key';e={$key}},
-        @{n='Name';e={$_.Name}},
-        @{n='Type';e={$_.Type}},
-        @{n='Parameter'; e={$_.Parameter}},
-        @{n='Available'; e={$_.Available}},
-        @{n='Failed'; e={$_.Failed}},
-        @{n='Value';e={$_.Value}},
-        @{n='Attempts'; e={$_.Attempts}},
-        @{n='MaxAttempts'; e= {$_.MaxAttempts}}
+        @{n = 'Key'; e = { $key } },
+        @{n = 'Name'; e = { $_.Name } },        
+        @{n = 'Parameter'; e = { $_.Parameter } },
+        @{n = 'Available'; e = { $_.Available } },
+        @{n = 'Failed'; e = { $_.Failed } },
+        @{n = 'Value'; e = { $_.Value } },
+        @{n = 'Token'; e = { $_.Token } },
+        @{n = 'Type'; e = { $_.Type } },
+        @{n = 'Attempts'; e = { $_.Attempts } },
+        @{n = 'MaxAttempts'; e = { $_.MaxAttempts } }
     )
-    $Install.MethodData.Keys | %{$key=$_;$Install.MethodData[$_] | %{[PSCustomObject]$_}} | Select $paramOrder | Sort Key | Out-GridView
+    $Install.MethodData.Keys | % { $key = $_; $Install.MethodData[$_] | % { [PSCustomObject]$_ } } | Select $paramOrder | Sort Key | Out-GridView
 }
 
-function DebugCommon {
-    function GreenLine { Write-Host ("*"*50) -ForegroundColor Green}
-    Write-Host "Appliance" -ForegroundColor Green ; GreenLine    
-    $agent.Appliance
-    Write-Host "History:" -ForegroundColor Green ;GreenLine
-    $agent.History
+function DebugAppData {
+    $paramOrder = @(
+        @{n = 'Key'; e = { $key } },
+        @{n = 'ID'; e = { $_.ID } },
+        @{n = 'WindowsVersion'; e = { $_.WindowsVersion } },
+        @{n = 'Version'; e = { $_.Version } },
+        @{n = 'SiteID'; e = { $_.SiteID } },
+        @{n = 'AssignedServer'; e = { $_.AssignedServer } },
+        @{n = 'LastInstall'; e = { $_.LastInstall } },
+        @{n = 'ActivationKey'; e = { $_.ActivationKey } }
+    )
+
+    $keys = @("Appliance", "History")
+    $
+    
+    Agent.Keys | ? { $keys -contains $_ } | % { $key = $_; $Agent[$_] } | % { [PSCustomObject]$_ } | Select $paramOrder | Sort Key | Out-GridView
+}
+
+function DebugGetProxyTokens {
+    $SC.InstallMethods.UsesAzProxy.Keys | % {
+        if ($SC.InstallMethods.UsesAzProxy[$_]) {
+            $Install.ChosenMethod = $Install.MethodData.$_
+            RequestAzWebProxyToken
+
+        }
+    }
 }
 
 function WriteKey {
@@ -3048,9 +3069,12 @@ function RequestAzWebProxyToken {
     $Install.ChosenMethod.Token = if ($Response -match $SC.Validation.GUID) { $Response } else { $null }
 
     ### If the method is an Activation Key, populate the value correctly
-    if ($null -ne $Install.ChosenMethod.Token -and $Install.ChosenMethod.Type -eq $NC.InstallTypes.B) {
+    if ($null -ne $Install.ChosenMethod.Token -and $Install.ChosenMethod.Type -eq $SC.InstallMethods.InstallTypes.B) {
         $Install.ChosenMethod.Value = NewEncodedKey $Agent.Appliance.AssignedServer $Agent.Appliance.ID $Install.ChosenMethod.Token
-    }   
+    }
+    else {
+        $Install.ChosenMethod.Value = "$($Install.ChosenMethod.Value)|$($Install.ChosenMethod.Token)"
+    }
     
 }
 
@@ -3097,25 +3121,24 @@ function InstallAgent {
         else {
             $Install.AgentString = @(
                 '/S /V" /qn',
+                #Server address
                 (@($NC.InstallParameters.D, $Config.NCServerAddress) -join '='),
+                #Port
                 (@($NC.InstallParameters.E, "443") -join '='),
+                #Protocol
                 (@($NC.InstallParameters.F, "HTTPS") -join '=')
             ) -join ' '
 
             # Gather the token from the AzWebproxy service if appropriate
             if ($Install.ChosenMethod.Type -eq $SC.InstallMethods.InstallTypes.D) {
                 RequestAzWebProxyToken
-                $Install.AgentString += (' ' + (@($NC.InstallParameters.B, $Install.ChosenMethod.Value -join '=')))
-                $Install.AgentString += (' ' + (@($NC.InstallParameters.H, $Install.ChosenMethod.Token -join '=')))
-                $Install.AgentString += (' ' + (@($NC.InstallParameters.C, "1") -join '='))
             }
-            # Otherwise retrieve from the available data
-            else {
-                $Install.AgentString += (' ' + (@($NC.InstallParameters.B, $Install.ChosenMethod.Value.Split('|')[0]) -join '='))
-                $Install.AgentString += (' ' + (@($NC.InstallParameters.H, $Install.ChosenMethod.Value.Split('|')[1]) -join '='))
-                $Install.AgentString += (' ' + (@($NC.InstallParameters.C, "1") -join '='))
-            }
-
+            $CustomerIDParam = $Install.ChosenMethod.Value.Split('|')[0]
+            $TokenParam = $Install.ChosenMethod.Value.Split('|')[1]
+            $Install.AgentString += (' ' + (@($NC.InstallParameters.B, $CustomerIDParam) -join '='))
+            $Install.AgentString += (' ' + (@($NC.InstallParameters.H, $TokenParam) -join '='))
+            # Customer specific flag
+            $Install.AgentString += (' ' + (@($NC.InstallParameters.C, "1") -join '='))
             # Add Proxy String if it Exists
             if ($null -ne $Config.ProxyString)
             { $Install.AgentString += (' ' + (@($NC.InstallParameters.G, $Config.ProxyString) -join '=')) }
