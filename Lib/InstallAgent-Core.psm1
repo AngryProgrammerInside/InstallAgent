@@ -3008,8 +3008,7 @@ function RequestAzWebProxyToken {
     WriteKey $Script.Results.ScriptKey $Script.Execution
     ### Function Body
     ###############################
-
-    
+    ### Attempt to connect to the AzNableProxy
     $Response = $null
     $Uri = "https://$($Config.AzNableProxyUri)/api/Get?Code=$($Config.AzNableAuthCode)&ID="
     try {
@@ -3025,7 +3024,7 @@ function RequestAzWebProxyToken {
     $Install.ChosenMethod.Token = if ($Response -match $SC.Validation.GUID) { $Response } else { $null }
 
     ### If the method is an Activation Key, populate the value correctly
-    if ($null -ne $Install.ChosenMethod.Token -and $Install.ChosenMethod.Parameter -eq $NC.InstallParameters.A) {
+    if ($null -ne $Install.ChosenMethod.Token -and $Install.ChosenMethod.Type -eq $NC.InstallTypes.B) {
         $Install.ChosenMethod.Value = NewEncodedKey $Agent.Appliance.AssignedServer $Agent.Appliance.ID $Install.ChosenMethod.Token
     }   
     
