@@ -20,6 +20,15 @@ function DebugInstallMethods {
     )
     $Install.MethodData.Keys | %{$key=$_;$Install.MethodData[$_] | %{[PSCustomObject]$_}} | Select $paramOrder | Sort Key | Out-GridView
 }
+
+function DebugCommon {
+    function GreenLine { Write-Host ("*"*50) -ForegroundColor Green}
+    Write-Host "Appliance" -ForegroundColor Green ; GreenLine    
+    $agent.Appliance
+    Write-Host "History:" -ForegroundColor Green ;GreenLine
+    $agent.History
+}
+
 function WriteKey {
     ### Parameters
     ###############################
