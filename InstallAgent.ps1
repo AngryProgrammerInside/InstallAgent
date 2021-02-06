@@ -430,9 +430,10 @@ $SC.InstallMethods = @{
     #Pending re-validation
     "H" = "Customer ID / Registration Token (Partner Config)"
     #Pending re-validation
-    "I" = "Customer ID / AzNableProxy Token (Partner Config)"
+    "J" = "Customer ID (Current Script) / AzNableProxy Token "
     #Pending re-validation
-    "J" = "Customer ID / AzNableProxy Token (Current Script)"
+    "I" = "Customer ID (Partner Config) / AzNableProxy Token "
+
   }
   "Type"         = @{
     "A" = "Activation Key: Token/AppId"
