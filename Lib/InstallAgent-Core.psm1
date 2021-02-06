@@ -5,6 +5,21 @@
 ### INITIALIZATION FUNCTIONS
 ###############################
 
+function DebugInstallMethods {
+    
+    $paramOrder = @(
+        @{n='Key';e={$key}},
+        @{n='Name';e={$_.Name}},
+        @{n='Type';e={$_.Type}},
+        @{n='Parameter'; e={$_.Parameter}},
+        @{n='Available'; e={$_.Available}},
+        @{n='Failed'; e={$_.Failed}},
+        @{n='Value';e={$_.Value}},
+        @{n='Attempts'; e={$_.Attempts}},
+        @{n='MaxAttempts'; e= {$_.MaxAttempts}}
+    )
+    $Install.MethodData.Keys | %{$key=$_;$Install.MethodData[$_] | %{[PSCustomObject]$_}} | Select $paramOrder | Sort Key | Out-GridView
+}
 function WriteKey {
     ### Parameters
     ###############################
@@ -70,7 +85,7 @@ function Quit {
     if ($Code -match $SC.Validation.InternalErrorCode) {
         $Script.Results.Function = $Function.Name
         $Script.Results.LineNumber = $Function.LineNumber
-        $Script.Results.Details += @("`n== Error Details ==")
+        $Script.Results.Details += @("`Name== Error Details ==")
         $Script.Results.Details += @($SC.Exit.$LCode.ExitMessage)
         $Script.Results.Details +=
         if ($null -ne $Script.Results.Function)
@@ -87,7 +102,7 @@ function Quit {
     }
     ### Format the Message Data for the Event Log
     # Add the Overall Script Result
-    $Script.Results.EventMessage += @("Overall Script Result:  " + $SC.Exit.$LCode.ExitType + "`n")
+    $Script.Results.EventMessage += @("Overall Script Result:  " + $SC.Exit.$LCode.ExitType + "`Name")
     # Add the Completion Status of Each Sequence
     $Script.Sequence.Order |
     ForEach-Object {
@@ -97,7 +112,7 @@ function Quit {
         ) -join ' - '
     }
     # Add the Detailed Messages for Each Sequence
-    $Script.Results.EventMessage += @("`n" + ($Script.Results.Details -join "`n"))
+    $Script.Results.EventMessage += @("`Name" + ($Script.Results.Details -join "`Name"))
     # For Typical Errors, Add the Branded Error Contact Message from Partner Configuration
     if (
         ($Code -ne 999) -and
@@ -105,12 +120,12 @@ function Quit {
         ($null -ne $Config.ErrorContactInfo)
     ) {
         $Script.Results.EventMessage +=
-        "`n--=========================--",
-        "`nTo report this documented issue, please submit this Event Log entry to:`n",
+        "`Name--=========================--",
+        "`nTo report this documented issue, please submit this Event Log entry to:`Name",
         $Config.ErrorContactInfo
     }
     # Combine All Message Items
-    $Script.Results.EventMessage = ($Script.Results.EventMessage -join "`n").TrimEnd('')
+    $Script.Results.EventMessage = ($Script.Results.EventMessage -join "`Name").TrimEnd('')
     ### Publish Execution Results to the Event Log
     # Create a New Key for the Event Source if Required
     if ((Test-Path $Script.Results.ScriptEventKey) -eq $false)
@@ -176,7 +191,7 @@ function Log {
                 ($Message -is [Array]))
         ) {
             if ($Message -is [Array])
-            { $Message = $Message -join "`n" }
+            { $Message = $Message -join "`Name" }
         }
         else {
             # ERROR - Invalid Parameter
@@ -240,7 +255,7 @@ function Log {
             { ($SC.SequenceStatus.B + " ($Code)"); break }
         }
         # Add Detail Message to Current Sequence
-        $Script.Results.Details += @("`n" + $Message)
+        $Script.Results.Details += @("`Name" + $Message)
     }
     if ($EndSequence -eq $true) {
         # Change Status to COMPLETE Unless Otherwise Specified
@@ -248,7 +263,7 @@ function Log {
         if ($Script.Sequence.Status[-1] -eq $SC.SequenceStatus.C)
         { $SC.SequenceStatus.A } else { $Script.Sequence.Status[-1] }
         # Add Sequence Footer After Detail Message
-        $Script.Results.Details += @("--== " + $Script.Execution.ScriptSequence + " Finished ==--`n")
+        $Script.Results.Details += @("--== " + $Script.Execution.ScriptSequence + " Finished ==--`Name")
     }
     # Update the Event Log Sequence Status
     $SelectedStatus = [Array]::IndexOf($Script.Sequence.Order, $Sequence)
@@ -295,11 +310,11 @@ function CatchError {
             $Out += 
             "== Command Details ==",
             ("Faulting Line Number:  " + $ExcCmdLN),
-            ("Faulting Command:  " + $ExcCmd + "`n")
+            ("Faulting Command:  " + $ExcCmd + "`Name")
         }
         $Out +=
         "== Error Message ==",
-        ($ExcMsg -join "`n")
+        ($ExcMsg -join "`Name")
     }
     Log E $Code $Out
     if ($Exit -eq $true) { Quit $Code }
@@ -599,7 +614,7 @@ function ValidatePartnerConfig {
         # Use Legacy Agent (Retain Support for Windows XP/Server 2003)
         # Legacy support no longer available, error out
         $InstallInfo = $Partner.Config.Deployment.Legacy
-        $Out = "N-Central Agent for Windows is no longer supported on Vista/2008 and earlier"
+        $Out = "Name-Central Agent for Windows is no longer supported on Vista/2008 and earlier"
         Log "LEGACY" 2 $Out -Exit
     }
     $Config.InstallFolder = $InstallInfo.InstallFolder
@@ -1017,7 +1032,7 @@ function ValidatePartnerConfig {
     # Report on any Invalid Configuration Items
     if ($null -ne $InvalidConfig) {
         $Out =
-        "One or more items in the Partner Configuration was invalid.`n",
+        "One or more items in the Partner Configuration was invalid.`Name",
         "Please verify the following values:"
         $InvalidConfig |
         Sort-Object |
@@ -1095,7 +1110,7 @@ function ValidateExecution {
             Select-Object -ExpandProperty TotalSeconds
         )
         $Out =
-        ("Windows has booted within the " + $Config.BootTimeWaitPeriod + "-second Wait Period specified in the Partner Config.`n"),
+        ("Windows has booted within the " + $Config.BootTimeWaitPeriod + "-second Wait Period specified in the Partner Config.`Name"),
         ("Waiting the remaining " + $WaitTime + " seconds before Diagnosis...")
         Log I 0 $Out
         Start-Sleep -Seconds $WaitTime
@@ -1441,7 +1456,7 @@ function TestNCServer {
     $Function.Name = '{0}' -f $MyInvocation.MyCommand
     ### Function Body
     ###############################
-    # Ping N-Central Server and Google DNS
+    # Ping Name-Central Server and Google DNS
     for ($i = 1; $i -le $Config.PingCount; $i++) { 
         $PingNCTest += @(Test-Connection $Config.NCServerAddress -Count 1 -Quiet)
         Start-Sleep -Milliseconds 300
@@ -1463,9 +1478,9 @@ function TestNCServer {
             $Out = @(
                 switch ($GoogleResult) {
                     $false
-                    { "Device appears not to have Internet connectivity at present.`n"; break }
+                    { "Device appears not to have Internet connectivity at present.`Name"; break }
                     $true
-                    { ("Device appears to have Internet connectivity, but is unable to reliably connect to the " + $NC.Products.NCServer.Name + ".`n"); break }
+                    { ("Device appears to have Internet connectivity, but is unable to reliably connect to the " + $NC.Products.NCServer.Name + ".`Name"); break }
                 },
                 "The Script will assess and perform Offline Repairs where possible until connectivity is restored."
             )
@@ -2187,7 +2202,7 @@ function RepairAgent {
         $SC.ApplianceStatus.F
         { ("The current " + $NC.Products.Agent.Name + " installation is damaged and must be re-installed."); break }
         $SC.ApplianceStatus.E
-        { ("The current " + $NC.Products.Agent.Name + " installation is not authenticating with the Partner N-Central Server and must be re-installed."); break }
+        { ("The current " + $NC.Products.Agent.Name + " installation is not authenticating with the Partner Name-Central Server and must be re-installed."); break }
         { $Agent.Health.VersionCorrect -eq $false }
         { ("The current " + $NC.Products.Agent.Name + " installation is out of date and must be upgraded."); break }
     }
@@ -2778,7 +2793,7 @@ function SelectInstallMethod {
         # ERROR - No Installation Methods Remaining
         MethodSummary
         $Out =
-        ("All available Methods and Attempts to install the " + $NC.Products.Agent.Name + " were unsuccessful.`n"),
+        ("All available Methods and Attempts to install the " + $NC.Products.Agent.Name + " were unsuccessful.`Name"),
         ("Review the Event Log for any entries made by the " + $NC.Products.Agent.InstallerName + " Event Source for more details.")
         Log E 12 $Out -Exit
     }
@@ -2832,7 +2847,7 @@ function CheckMSIService {
         # Exit - Windows Installer Service Unavailable
         $Out = (
             "The Windows Installer Service has been unavailable for the timeout period of " +
-            $Config.InstallTimeoutPeriod + " minutes.`n`n" +
+            $Config.InstallTimeoutPeriod + " minutes.`Name`Name" +
             "This could be due to an Installer that is requesting user input to continue. "
         )
         $Out +=
@@ -2888,7 +2903,7 @@ function InstallNET {
     )
     if ($Device.NETProduct -lt (ValidateVersion $Config.NETVersion 2)) {
         # Exit - .NET Framework Installation Failed
-        $Out += ". An error occurred during installation.`n`nReview the Event Log for relevant details."
+        $Out += ". An error occurred during installation.`Name`nReview the Event Log for relevant details."
         Log E 10 $Out -Exit
     }
     $Out += " and was installed successfully."
@@ -2942,7 +2957,7 @@ function VerifyPrerequisites {
     if ($Install.NCServerAccess -eq $false) {
         # Exit - Installer will Fail to Authenticate with Server
         $Out =
-        ("The Device is currently unable to reliably reach the " + $NC.Products.NCServer.Name + ". Installation attempts will fail authentication.`n"),
+        ("The Device is currently unable to reliably reach the " + $NC.Products.NCServer.Name + ". Installation attempts will fail authentication.`Name"),
         "This may be caused by lack of Internet connectivity, a poor connection, or DNS is unavailable or unable to resolve the address.",
         "If this issue persists, verify the <NCServerAddress> value in the Partner Configuration is correct."
         Log E 6 $Out -Exit
@@ -2960,11 +2975,11 @@ function VerifyPrerequisites {
         # Exit - No Available Installation Methods
         $Out =
         if ($null -eq $CustomerID) {
-            @("An " + $NC.Products.Agent.IDName + " was not provided to the Script and is required for Installation.`n")
+            @("An " + $NC.Products.Agent.IDName + " was not provided to the Script and is required for Installation.`Name")
             $ExitCode = 7
         }
         else {
-            @("The " + $NC.Products.Agent.IDName + " provided to the Script [" + $CustomerID + "] is invalid. A valid Customer ID is required for Installation.`n")
+            @("The " + $NC.Products.Agent.IDName + " provided to the Script [" + $CustomerID + "] is invalid. A valid Customer ID is required for Installation.`Name")
             $ExitCode = 8
         }
         $Out +=
