@@ -48,6 +48,12 @@ REM - Windows XP SP3
 SET "PS2_XP-x86=http://download.windowsupdate.com/msdownload/update/software/updt/2009/11/windowsxp-kb968930-x86-eng_540d661066953d76a6907b6ee0d1cd4531c1e1c6.exe"
 
 REM = ### DEFINITIONS
+@ECHO OFF
+set argCount=0
+for %%x in (%*) do (
+   set /A argCount+=1
+)
+ECHO Number of arguments: %ArgCount%
 REM - Launcher Script Name
 SET LauncherScript=Agent Setup Launcher
 REM - Setup Script Name
@@ -441,17 +447,34 @@ COPY /Y "%DeployFolder%*" "%TempFolder%" >NUL
 COPY /Y "%DeployLib%\*" "%LibFolder%" >NUL
 IF %ERRORLEVEL% EQU 0 (
   REM - Launch Agent Setup Script
-  IF "%CustomerID%" NEQ "" (
-    START "" %WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -WindowStyle Hidden -File "%TempFolder%\InstallAgent.ps1" -CustomerID %CustomerID% -RegistrationToken %RegistrationToken% -LauncherPath "%DeployFolder%
-    GOTO QuitSuccess
-  ) ELSE (
-    START "" %WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -WindowStyle Hidden -File "%TempFolder%\InstallAgent.ps1" -LauncherPath "%DeployFolder%
-    GOTO QuitSuccess
+  IF %ArgCount% EQU 0 (
+      GOTO PARTNERCONFIG
+  )
+  IF %ArgCount% EQU 1 (
+       GOTO CUSTOMERIDONLY 
+  )
+  IF %ArgCount% EQU 2 (
+      GOTO CUSTOMERANDTOKEN
   )
 ) ELSE (
   SET "Message=%SetupScript% was missing or not found after transfer."
   GOTO QuitFailure
 )
+
+:CUSTOMERANDTOKEN
+ECHO Running with customer and token
+START "" %WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -WindowStyle Hidden -File "%TempFolder%\InstallAgent.ps1" -CustomerID %CustomerID% -RegistrationToken %RegistrationToken% -LauncherPath "%DeployFolder%
+GOTO QuitSuccess
+
+:CUSTOMERIDONLY
+ECHO Running with Customer ID Only
+START "" %WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -WindowStyle Hidden -File "%TempFolder%\InstallAgent.ps1" -CustomerID %CustomerID% -LauncherPath "%DeployFolder%
+GOTO QuitSuccess
+
+:PARTNERCONFIG
+ECHO Using Partner config
+START "" %WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -WindowStyle Hidden -File "%TempFolder%\InstallAgent.ps1" -LauncherPath "%DeployFolder%
+GOTO QuitSuccess
 
 :QuitIncompatible
 ECHO X  OS Not Compatible with either the Agent or the %SetupScript%

@@ -1779,6 +1779,7 @@ function DiagnoseAgent {
 
     ### Build activation key from script input and Appliance ID
     if ($Agent.Appliance.ID -and $Script.RegistrationToken) {
+        #Activation Key: Appliance Server/Appliance App ID/Script Token
         $Script.ActivationKey = NewEncodedKey $Agent.Appliance.AssignedServer $Agent.Appliance.ID $Script.RegistrationToken
     }
     
@@ -2635,8 +2636,8 @@ function GetInstallMethods {
     ###############################
     ### Get Potential Values for Installation
     $Values = @(
-        $Config.ActivationKey
         $Script.ActivationKey,
+        $Config.ActivationKey,        
         $Agent.History.ActivationKey,
         $Agent.Appliance.SiteID,
         $Script.CustomerID,
