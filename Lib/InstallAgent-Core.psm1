@@ -1037,7 +1037,8 @@ function ValidatePartnerConfig {
         $Out = @("AzNableProxyUri and AuthCode found")
         $Config.IsAzNableAvailable = $true
         Log I 0 $Out
-    } else {
+    }
+    else {
         $Config.IsAzNableAvailable = $false
     }
     ### Populate Configuration History Location from Partner Configuration
@@ -1731,13 +1732,15 @@ function DiagnoseAgent {
         if ($null -eq $t.ActivationKey) {
             # Build Activation Key
             $ChosenToken = 
-                if ($null -ne $Install.ChosenMethod.Token){
-                    $Install.ChosenMethod.Token
-                } elseif ($null -ne $Script.RegistrationToken){
-                    $Script.RegistrationToken
-                } elseif ($null -ne $Config.RegistrationToken) {
-                    $Config.RegistrationToken
-                }
+            if ($null -ne $Install.ChosenMethod.Token) {
+                $Install.ChosenMethod.Token
+            }
+            elseif ($null -ne $Script.RegistrationToken) {
+                $Script.RegistrationToken
+            }
+            elseif ($null -ne $Config.RegistrationToken) {
+                $Config.RegistrationToken
+            }
             
             if ($null -ne $t.ID) {
                 $r = $($Agent)
@@ -1771,24 +1774,18 @@ function DiagnoseAgent {
 
     #Working Here
     ### Build Activation Key ID from Available Parts if Required
-    
-    ### Build activation key from Partner Config and Appliance ID
-    if ($Agent.Appliance.ID -and $Config.RegistrationToken) {
-        $Config.ActivationKey = NewEncodedKey $Agent.Appliance.AssignedServer $Agent.Appliance.ID $Config.RegistrationToken
-    }
-
     ### Build activation key from script input and Appliance ID
+    # "Activation Key : Token (Current Script) / Appliance ID (Existing Installation)"
     if ($Agent.Appliance.ID -and $Script.RegistrationToken) {
         #Activation Key: Appliance Server/Appliance App ID/Script Token
         $Script.ActivationKey = NewEncodedKey $Agent.Appliance.AssignedServer $Agent.Appliance.ID $Script.RegistrationToken
     }
     
-    ### Build activation key from Token and Appliance ID in history XML
-    if ($Agent.Appliance.ID -and $Agent.History.ID) {
-        $Agent.History.ActivationKey = NewEncodedKey $Agent.Appliance.AssignedServer $Agent.Appliance.ID $Agent.History.ID
+    ### Build activation key from Partner Config and Appliance ID
+    # "Activation Key : Token (Partner Config) / Appliance ID (Existing Installation)"
+    if ($Agent.Appliance.ID -and $Config.RegistrationToken) {
+        $Config.ActivationKey = NewEncodedKey $Agent.Appliance.AssignedServer $Agent.Appliance.ID $Config.RegistrationToken
     }
-    
-
     ### Update or Create Historical Configuration File if Required
     UpdateHistory
     ### Check for a Corrupt or Disabled Agent
@@ -2644,8 +2641,9 @@ function GetInstallMethods {
         "$($Script.CustomerID)|$($Script.RegistrationToken)",
         "$($Agent.History.ScriptSiteID)|$($Agent.History.RegistrationToken)",
         "$($Config.CustomerId)|$($Config.RegistrationToken)",
-        $Config.CustomerId,
-        $Script.CustomerID
+        $Script.CustomerID,
+        $Config.CustomerId
+
     )
     #Working here
     ### Populate Method Tables with Available Values
@@ -2660,7 +2658,8 @@ function GetInstallMethods {
             ) {
                 # Only use Script Customer ID for Takeover Installations
                 $false
-            }elseif (!$Config.IsAzNableAvailable -and $SC.InstallMethods.UsesAzProxy.(AlphaValue $i)) {
+            }
+            elseif (!$Config.IsAzNableAvailable -and $SC.InstallMethods.UsesAzProxy.(AlphaValue $i)) {
                 # If AzNableProxy configation isn't available and method uses it...
                 $false
             }
@@ -2794,6 +2793,8 @@ function UpdateHistory {
     ### Function Body
     ###############################
     # Update Configuration History File
+    # This section is also responsible for:
+    # "Activation Key : Token / Appliance ID (Historical Installation)"
     $LastUpdate =
     if ($Agent.History.Count -gt 0)
     { $Agent.History } else { @{} }
@@ -3011,55 +3012,13 @@ function RequestAzWebProxyToken {
     
     $Response = $null
     $Uri = "https://$($Config.AzNableProxyUri)/api/Get?Code=$($Config.AzNableAuthCode)&ID="
-    switch ($Install.ChosenMethod.Name) {
-        ### Retrieve token with CustomerID from Appliance.ID
-        $SC.InstallMethods.Names.D {
-            try {
-                $Uri += "$($Agent.Appliance.ID)"
-                $Response = Invoke-RestMethod -Uri $Uri
-            }
-            catch {
-                $Out = "Error retrieving token from $Uri using $($Install.ChosenMethod.Name)"
-                Log E 15 $Out
-            }
-            break
-        }
-        ### Retrieve token with CustomerID from current script
-        $SC.InstallMethods.Names.E {
-            try {
-                $Uri += "$($Script.CustomerID)"
-                $Response = Invoke-RestMethod -Uri $Uri
-            }
-            catch {
-                $Out = $Out = "Error retrieving token from $Uri using $($Install.ChosenMethod.Name)"
-                Log E 15 $Out
-            }
-            break
-        }
-        ### Retrieve token with CustomerID from Partner Config
-        $SC.InstallMethods.Names.I {
-            try {
-                $Uri += "$($Config.CustomerId)"
-                $Response = Invoke-RestMethod -Uri $Uri
-            }
-            catch {
-                $Out = "Error retrieving token from $Uri using $($Install.ChosenMethod.Name)"
-                Log E 15 $Out
-            }
-            break
-        }
-        ### Retrieve token with CustomerID from Script CustomerID
-        $SC.InstallMethods.Names.J {
-            try {
-                $Uri += "$($Script.CustomerId)"
-                $Response = Invoke-RestMethod -Uri $Uri
-            }
-            catch {
-                $Out = "Error retrieving token from $Uri using $($Install.ChosenMethod.Name)"
-                Log E 15 $Out
-            }
-            break
-        }    
+    try {
+        $Uri += "$($Install.ChosenMethod.Value)"
+        $Response = Invoke-RestMethod -Uri $Uri
+    }
+    catch {
+        $Out = "Error retrieving token from $Uri using $($Install.ChosenMethod.Name)"
+        Log E 15 $Out
     }
 
     ### Validate that the response is a GUID

@@ -411,13 +411,13 @@ $SC.InstallMethods = @{
     "H" = 1
   }
   "Names"        = @{
-    #Pending re-validation
+    #String Validated 6/02/2021
     #Activation Key: Appliance Server/Appliance App ID/Script Token
     "A" = "Activation Key : Token (Current Script) / Appliance ID (Existing Installation)"
     #String validated 6/02/2021
     #Activation Key: Appliance Server/Appliance App ID/Config Token
     "B" = "Activation Key : Token (Partner Config) / Appliance ID (Existing Installation)"
-    #Pending re-validation
+    #String validated 6/02/2021 - needs further review, activation key pulled from method UpdateHistory
     "C" = "Activation Key : Token / Appliance ID (Historical Installation)"
     #Pending re-validation
     "D" = "Activation Key : AzNableProxy Token / Customer ID, Appliance ID (Existing Installation)"
