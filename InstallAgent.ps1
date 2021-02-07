@@ -195,7 +195,6 @@ if ($DebugMode.IsPresent) {
   if (Test-Path $AgentRegPath){
     Remove-Item $AgentRegPath -Recurse -Force
   }
-  Set-PSBreakpoint -Script $MyInvocation.MyCommand.Path -Line 794
 }
 
 ### N-Central Constants

@@ -1,3 +1,6 @@
+param (
+    [Switch]$Monitor
+)
 ### 1.0.0 on 2021-02-07 - David Brooks, Premier Technology Solutions
 ##################################################################
 # - Adapted updated Batch file version of InstallAgent to PowerShell
@@ -5,12 +8,13 @@ Write-Host "CustomerID: $($args[0])" -ForegroundColor Green
 Write-Host "Token: $($args[1])" -ForegroundColor Green
 $CustomerID = $args[0]
 $RegistrationToken = $args[1]
+Write-Host "Monitor switch is present: $($Monitor.IsPresent)"
 
 # - Launcher Script Name
-$LauncherScript="Agent Setup Launcher"
+$LauncherScript = "Agent Setup Launcher"
 # - Setup Script Name
-$SetupScript="Agent Setup Script"
-if (-not [System.Diagnostics.EventLog]::SourceExists($LauncherScript)){
+$SetupScript = "Agent Setup Script"
+if (-not [System.Diagnostics.EventLog]::SourceExists($LauncherScript)) {
     New-EventLog -Source $LauncherScript -LogName Application
 }
 
@@ -68,36 +72,46 @@ switch ($args.Count) {
 }
 # Successfully launched...
 
-if ($null -eq $p){
+if ($null -eq $p) {
     Write-EventLog -EntryType Error -EventId 13 -LogName Application -Source $LauncherScript -Message  "$SetupScript encountered an error starting the launcher" > $null
     Exit 2
 }
 
-Write-Host "Launched InstallAgent script on $($p.Id), waiting on Exit"
-$p.WaitForExit()
-
+Write-Host "Launched InstallAgent with PID: $($p.Id), waiting on Exit"
 $RegPaths = @{
-    Summary = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent"
+    Summary      = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent"
     Installation = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent\Installation"
-    Diagnosis = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent\Diagnosis"
+    Diagnosis    = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent\Diagnosis"
 }
 
-if ($p.ExitCode -eq 0){
+while (-not $p.HasExited) {
+    if ($Monitor.IsPresent) {
+        Start-Sleep 1
+        Clear-Host
+        if (Test-Path $RegPaths.Summary) {
+            Write-Host "Progress: " -ForegroundColor Green -NoNewline
+            Get-ItemProperty $RegPaths.Summary | Select * -ExcludeProperty PS* | fl *
+        }
+    }
+}
+if ($p.ExitCode -eq 0) {
     Write-Host "Script ran successfully, displaying registry results:" -ForegroundColor Green
     $RegPaths.Keys | % { 
-        if (Test-Path $RegPaths[$_]){
-        Write-Host "$($_): " -ForegroundColor Green -NoNewline;
-        Get-ItemProperty $RegPaths[$_] |Select * -ExcludeProperty PS* | fl *}
+        if (Test-Path $RegPaths[$_]) {
+            Write-Host "$($_): " -ForegroundColor Green -NoNewline;
+            Get-ItemProperty $RegPaths[$_] | Select * -ExcludeProperty PS* | fl *
         }
+    }
     Write-Host "Check logs for additional details"
 }
 else {
     Write-Host "Script ran successfully, displaying registry results:"
     $RegPaths.Keys | % { 
-        if (Test-Path $RegPaths[$_]){
-        Write-Host "$($_): " -ForegroundColor Green -NoNewline;
-        Get-ItemProperty $RegPaths[$_] |Select * -ExcludeProperty PS* | fl *}
+        if (Test-Path $RegPaths[$_]) {
+            Write-Host "$($_): " -ForegroundColor Green -NoNewline;
+            Get-ItemProperty $RegPaths[$_] | Select * -ExcludeProperty PS* | fl *
         }
+    }
     Write-Host "Check logs for additional details"
     Write-EventLog -EntryType Error -EventId 13 -LogName Application -Source $LauncherScript -Message  "$SetupScript encountered an error starting the launcher" > $null
 }

@@ -1092,7 +1092,7 @@ function ValidatePartnerConfig {
         $Out = @("Valid CustomerId and Registration token found in Partner Configuration")
         Log I 0 $Out
     }
-    if ( $null -ne $Config.AzNableProxyUri -and $null -ne $Config.AzNableAuthCode) {
+    if ($Config.AzNableProxyUri -ne "" -and $Config.AzNableAuthCode -ne "") {
         $Out = @("AzNableProxyUri and AuthCode found")
         $Config.IsAzNableAvailable = $true
         Log I 0 $Out
@@ -1811,27 +1811,8 @@ function DiagnoseAgent {
                 )
             }
         }
-
-        # Working Here
-        # Delete this?
-        <#
-        # Appliance ID
-        if ($null -eq $t.ApplianceID) {
-            # Extract Appliance ID
-            if ($null -ne $t.ActivationKey) {
-                $r = $($Agent)
-                $r.DecodedActivationKey =
-                [System.Text.Encoding]::UTF8.GetString(
-                    [System.Convert]::FromBase64String($t.ActivationKey)
-                )
-                # Add the Value
-                $t.ID = $r.DecodedActivationKey.Split('|')[-3]
-            }
-        }
-        #>
     }
 
-    #Working Here
     ### Build Activation Key ID from Available Parts if Required
     ### Build activation key from script input and Appliance ID
     # "Activation Key : Token (Current Script) / Appliance ID (Existing Installation)"
@@ -2696,7 +2677,7 @@ function GetInstallMethods {
         $Config.ActivationKey,        
         $Agent.History.ActivationKey,
         $Agent.Appliance.SiteID,
-        $Script.CustomerID,
+        ($Script.CustomerID),
         "$($Script.CustomerID)|$($Script.RegistrationToken)",
         "$($Agent.History.ScriptSiteID)|$($Agent.History.RegistrationToken)",
         "$($Config.CustomerId)|$($Config.RegistrationToken)",
@@ -2720,8 +2701,11 @@ function GetInstallMethods {
             elseif (!$Config.IsAzNableAvailable -and $SC.InstallMethods.UsesAzProxy.(AlphaValue $i)) {
                 # If AzNableProxy configation isn't available and method uses it...
                 $false
+            }elseif ($Config.IsAzNableAvailable -and $SC.InstallMethods.Type.(AlphaValue $i) -eq $SC.InstallMethods.InstallTypes.B -and $Agent.Health.Installed -eq $false){
+                # If the type is AzNableProxy, it is Activation Type install and the agent is not installed
+                $false
             }
-            else { $null -ne $Values[$i] -and "|" -ne $Values[$i] }
+            else {$null -ne $Values[$i] -and "|" -ne $Values[$i] -and $Values[$i] -notlike "*|"}
             "Failed"         = $false
             "FailedAttempts" = 0
             "MaxAttempts"    = $SC.InstallMethods.Attempts.$(AlphaValue $i)
