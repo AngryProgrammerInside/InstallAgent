@@ -5,6 +5,65 @@
 ### INITIALIZATION FUNCTIONS
 ###############################
 
+function DebugInstallMethods {
+    ### Function Body
+    ###############################
+    ### This function is not used during normal script operation, it is used for the validation during development
+    # Provides a Gridview of the install methods hashtable
+    $paramOrder = @(
+        @{n = 'Key'; e = { $key } },
+        @{n = 'Name'; e = { $_.Name } },        
+        #@{n = 'Parameter'; e = { $_.Parameter } },
+        @{n = 'Available'; e = { $_.Available } },
+        @{n = 'Failed'; e = { $_.Failed } },
+        @{n = 'Value'; e = { $_.Value } },
+        @{n = 'Token'; e = { $_.Token } },
+        @{n = 'Type'; e = { $_.Type } },
+        @{n = 'Attempts'; e = { $_.Attempts } },
+        @{n = 'MaxAttempts'; e = { $_.MaxAttempts } }
+    )
+    $Install.MethodData.Keys | % { $key = $_; $Install.MethodData[$_] | % { [PSCustomObject]$_ } } | Select $paramOrder | Sort Key | Out-GridView
+}
+
+function DebugAppData {
+    ### Function Body
+    ###############################
+    ### This function is not used during normal script operation, it is used for the validation during development
+    # Provides a Gridview of the installed agent and historicall installs
+    $paramOrder = @(
+        @{n = 'Key'; e = { $key } },
+        @{n = 'ID'; e = { $_.ID } },
+        @{n = 'WindowsVersion'; e = { $_.WindowsVersion } },
+        @{n = 'Version'; e = { $_.Version } },
+        @{n = 'SiteID'; e = { $_.SiteID } },
+        @{n = 'AssignedServer'; e = { $_.AssignedServer } },
+        @{n = 'LastInstall'; e = { $_.LastInstall } },
+        @{n = 'ActivationKey'; e = { $_.ActivationKey } }
+    )
+
+    $keys = @("Appliance", "History")
+    $
+    
+    Agent.Keys | ? { $keys -contains $_ } | % { $key = $_; $Agent[$_] } | % { [PSCustomObject]$_ } | Select $paramOrder | Sort Key | Out-GridView
+}
+
+function DebugGetProxyTokens {
+    ### Function Body
+    ###############################
+    ### This function is not used during normal script operation, it is used for the validation during development
+    # Function submits all CustomerIDs through the RequestAzWebProxyToken function to retrieve the registration token
+    # Note this updates the InstallMethod.Value param, so it may prevent further execution depend on debug point
+    # To reset, use DiagnoseAgent and GetInstallMethods functions
+    $SC.InstallMethods.UsesAzProxy.Keys | % {
+        if ($SC.InstallMethods.UsesAzProxy[$_]) {
+            $Install.ChosenMethod = $Install.MethodData.$_
+            if ($null -ne $Install.ChosenMethod.Value){
+                RequestAzWebProxyToken
+            }
+        }
+    }
+}
+
 function WriteKey {
     ### Parameters
     ###############################
@@ -70,7 +129,7 @@ function Quit {
     if ($Code -match $SC.Validation.InternalErrorCode) {
         $Script.Results.Function = $Function.Name
         $Script.Results.LineNumber = $Function.LineNumber
-        $Script.Results.Details += @("`n== Error Details ==")
+        $Script.Results.Details += @("`Name== Error Details ==")
         $Script.Results.Details += @($SC.Exit.$LCode.ExitMessage)
         $Script.Results.Details +=
         if ($null -ne $Script.Results.Function)
@@ -87,7 +146,7 @@ function Quit {
     }
     ### Format the Message Data for the Event Log
     # Add the Overall Script Result
-    $Script.Results.EventMessage += @("Overall Script Result:  " + $SC.Exit.$LCode.ExitType + "`n")
+    $Script.Results.EventMessage += @("Overall Script Result:  " + $SC.Exit.$LCode.ExitType + "`Name")
     # Add the Completion Status of Each Sequence
     $Script.Sequence.Order |
     ForEach-Object {
@@ -97,7 +156,7 @@ function Quit {
         ) -join ' - '
     }
     # Add the Detailed Messages for Each Sequence
-    $Script.Results.EventMessage += @("`n" + ($Script.Results.Details -join "`n"))
+    $Script.Results.EventMessage += @("`Name" + ($Script.Results.Details -join "`Name"))
     # For Typical Errors, Add the Branded Error Contact Message from Partner Configuration
     if (
         ($Code -ne 999) -and
@@ -105,12 +164,12 @@ function Quit {
         ($null -ne $Config.ErrorContactInfo)
     ) {
         $Script.Results.EventMessage +=
-        "`n--=========================--",
-        "`nTo report this documented issue, please submit this Event Log entry to:`n",
+        "`Name--=========================--",
+        "`nTo report this documented issue, please submit this Event Log entry to:`Name",
         $Config.ErrorContactInfo
     }
     # Combine All Message Items
-    $Script.Results.EventMessage = ($Script.Results.EventMessage -join "`n").TrimEnd('')
+    $Script.Results.EventMessage = ($Script.Results.EventMessage -join "`Name").TrimEnd('')
     ### Publish Execution Results to the Event Log
     # Create a New Key for the Event Source if Required
     if ((Test-Path $Script.Results.ScriptEventKey) -eq $false)
@@ -125,7 +184,7 @@ function Quit {
     if (!$DebugMode.isPresent) {
         Remove-Item $Script.Path.TempFolder -Force -Recurse 2>$null
     }    
-    exit
+    exit $Code
 }
 
 function Log {
@@ -176,7 +235,7 @@ function Log {
                 ($Message -is [Array]))
         ) {
             if ($Message -is [Array])
-            { $Message = $Message -join "`n" }
+            { $Message = $Message -join "`Name" }
         }
         else {
             # ERROR - Invalid Parameter
@@ -240,7 +299,7 @@ function Log {
             { ($SC.SequenceStatus.B + " ($Code)"); break }
         }
         # Add Detail Message to Current Sequence
-        $Script.Results.Details += @("`n" + $Message)
+        $Script.Results.Details += @("`Name" + $Message)
     }
     if ($EndSequence -eq $true) {
         # Change Status to COMPLETE Unless Otherwise Specified
@@ -248,7 +307,7 @@ function Log {
         if ($Script.Sequence.Status[-1] -eq $SC.SequenceStatus.C)
         { $SC.SequenceStatus.A } else { $Script.Sequence.Status[-1] }
         # Add Sequence Footer After Detail Message
-        $Script.Results.Details += @("--== " + $Script.Execution.ScriptSequence + " Finished ==--`n")
+        $Script.Results.Details += @("--== " + $Script.Execution.ScriptSequence + " Finished ==--`Name")
     }
     # Update the Event Log Sequence Status
     $SelectedStatus = [Array]::IndexOf($Script.Sequence.Order, $Sequence)
@@ -295,11 +354,11 @@ function CatchError {
             $Out += 
             "== Command Details ==",
             ("Faulting Line Number:  " + $ExcCmdLN),
-            ("Faulting Command:  " + $ExcCmd + "`n")
+            ("Faulting Command:  " + $ExcCmd + "`Name")
         }
         $Out +=
         "== Error Message ==",
-        ($ExcMsg -join "`n")
+        ($ExcMsg -join "`Name")
     }
     Log E $Code $Out
     if ($Exit -eq $true) { Quit $Code }
@@ -599,7 +658,7 @@ function ValidatePartnerConfig {
         # Use Legacy Agent (Retain Support for Windows XP/Server 2003)
         # Legacy support no longer available, error out
         $InstallInfo = $Partner.Config.Deployment.Legacy
-        $Out = "N-Central Agent for Windows is no longer supported on Vista/2008 and earlier"
+        $Out = "Name-Central Agent for Windows is no longer supported on Vista/2008 and earlier"
         Log "LEGACY" 2 $Out -Exit
     }
     $Config.InstallFolder = $InstallInfo.InstallFolder
@@ -1017,7 +1076,7 @@ function ValidatePartnerConfig {
     # Report on any Invalid Configuration Items
     if ($null -ne $InvalidConfig) {
         $Out =
-        "One or more items in the Partner Configuration was invalid.`n",
+        "One or more items in the Partner Configuration was invalid.`Name",
         "Please verify the following values:"
         $InvalidConfig |
         Sort-Object |
@@ -1033,11 +1092,12 @@ function ValidatePartnerConfig {
         $Out = @("Valid CustomerId and Registration token found in Partner Configuration")
         Log I 0 $Out
     }
-    if ( $null -ne $Config.AzNableProxyUri -and $null -ne $Config.AzNableAuthCode) {
+    if ($Config.AzNableProxyUri -ne "" -and $Config.AzNableAuthCode -ne "") {
         $Out = @("AzNableProxyUri and AuthCode found")
         $Config.IsAzNableAvailable = $true
         Log I 0 $Out
-    } else {
+    }
+    else {
         $Config.IsAzNableAvailable = $false
     }
     ### Populate Configuration History Location from Partner Configuration
@@ -1094,7 +1154,7 @@ function ValidateExecution {
             Select-Object -ExpandProperty TotalSeconds
         )
         $Out =
-        ("Windows has booted within the " + $Config.BootTimeWaitPeriod + "-second Wait Period specified in the Partner Config.`n"),
+        ("Windows has booted within the " + $Config.BootTimeWaitPeriod + "-second Wait Period specified in the Partner Config.`Name"),
         ("Waiting the remaining " + $WaitTime + " seconds before Diagnosis...")
         Log I 0 $Out
         Start-Sleep -Seconds $WaitTime
@@ -1440,7 +1500,7 @@ function TestNCServer {
     $Function.Name = '{0}' -f $MyInvocation.MyCommand
     ### Function Body
     ###############################
-    # Ping N-Central Server and Google DNS
+    # Ping Name-Central Server and Google DNS
     for ($i = 1; $i -le $Config.PingCount; $i++) { 
         $PingNCTest += @(Test-Connection $Config.NCServerAddress -Count 1 -Quiet)
         Start-Sleep -Milliseconds 300
@@ -1462,9 +1522,9 @@ function TestNCServer {
             $Out = @(
                 switch ($GoogleResult) {
                     $false
-                    { "Device appears not to have Internet connectivity at present.`n"; break }
+                    { "Device appears not to have Internet connectivity at present.`Name"; break }
                     $true
-                    { ("Device appears to have Internet connectivity, but is unable to reliably connect to the " + $NC.Products.NCServer.Name + ".`n"); break }
+                    { ("Device appears to have Internet connectivity, but is unable to reliably connect to the " + $NC.Products.NCServer.Name + ".`Name"); break }
                 },
                 "The Script will assess and perform Offline Repairs where possible until connectivity is restored."
             )
@@ -1731,13 +1791,15 @@ function DiagnoseAgent {
         if ($null -eq $t.ActivationKey) {
             # Build Activation Key
             $ChosenToken = 
-                if ($null -ne $Install.ChosenMethod.Token){
-                    $Install.ChosenMethod.Token
-                } elseif ($null -ne $Script.RegistrationToken){
-                    $Script.RegistrationToken
-                } elseif ($null -ne $Config.RegistrationToken) {
-                    $Config.RegistrationToken
-                }
+            if ($null -ne $Install.ChosenMethod.Token) {
+                $Install.ChosenMethod.Token
+            }
+            elseif ($null -ne $Script.RegistrationToken) {
+                $Script.RegistrationToken
+            }
+            elseif ($null -ne $Config.RegistrationToken) {
+                $Config.RegistrationToken
+            }
             
             if ($null -ne $t.ID) {
                 $r = $($Agent)
@@ -1749,45 +1811,21 @@ function DiagnoseAgent {
                 )
             }
         }
-
-        # Working Here
-        # Delete this?
-        <#
-        # Appliance ID
-        if ($null -eq $t.ApplianceID) {
-            # Extract Appliance ID
-            if ($null -ne $t.ActivationKey) {
-                $r = $($Agent)
-                $r.DecodedActivationKey =
-                [System.Text.Encoding]::UTF8.GetString(
-                    [System.Convert]::FromBase64String($t.ActivationKey)
-                )
-                # Add the Value
-                $t.ID = $r.DecodedActivationKey.Split('|')[-3]
-            }
-        }
-        #>
     }
 
-    #Working Here
     ### Build Activation Key ID from Available Parts if Required
-    
-    ### Build activation key from Partner Config and Appliance ID
-    if ($Agent.Appliance.ID -and $Config.RegistrationToken) {
-        $Config.ActivationKey = NewEncodedKey $Agent.Appliance.AssignedServer $Agent.Appliance.ID $Config.RegistrationToken
-    }
-
     ### Build activation key from script input and Appliance ID
+    # "Activation Key : Token (Current Script) / Appliance ID (Existing Installation)"
     if ($Agent.Appliance.ID -and $Script.RegistrationToken) {
+        #Activation Key: Appliance Server/Appliance App ID/Script Token
         $Script.ActivationKey = NewEncodedKey $Agent.Appliance.AssignedServer $Agent.Appliance.ID $Script.RegistrationToken
     }
     
-    ### Build activation key from Token and Appliance ID in history XML
-    if ($Agent.Appliance.ID -and $Agent.History.ID) {
-        $Agent.History.ActivationKey = NewEncodedKey $Agent.Appliance.AssignedServer $Agent.Appliance.ID $Agent.History.ID
+    ### Build activation key from Partner Config and Appliance ID
+    # "Activation Key : Token (Partner Config) / Appliance ID (Existing Installation)"
+    if ($Agent.Appliance.ID -and $Config.RegistrationToken) {
+        $Config.ActivationKey = NewEncodedKey $Agent.Appliance.AssignedServer $Agent.Appliance.ID $Config.RegistrationToken
     }
-    
-
     ### Update or Create Historical Configuration File if Required
     UpdateHistory
     ### Check for a Corrupt or Disabled Agent
@@ -2189,7 +2227,7 @@ function RepairAgent {
         $SC.ApplianceStatus.F
         { ("The current " + $NC.Products.Agent.Name + " installation is damaged and must be re-installed."); break }
         $SC.ApplianceStatus.E
-        { ("The current " + $NC.Products.Agent.Name + " installation is not authenticating with the Partner N-Central Server and must be re-installed."); break }
+        { ("The current " + $NC.Products.Agent.Name + " installation is not authenticating with the Partner Name-Central Server and must be re-installed."); break }
         { $Agent.Health.VersionCorrect -eq $false }
         { ("The current " + $NC.Products.Agent.Name + " installation is out of date and must be upgraded."); break }
     }
@@ -2635,16 +2673,16 @@ function GetInstallMethods {
     ###############################
     ### Get Potential Values for Installation
     $Values = @(
-        $Config.ActivationKey
         $Script.ActivationKey,
+        $Config.ActivationKey,        
         $Agent.History.ActivationKey,
         $Agent.Appliance.SiteID,
-        $Script.CustomerID,
+        ($Script.CustomerID),
         "$($Script.CustomerID)|$($Script.RegistrationToken)",
         "$($Agent.History.ScriptSiteID)|$($Agent.History.RegistrationToken)",
         "$($Config.CustomerId)|$($Config.RegistrationToken)",
-        $Config.CustomerId,
-        $Script.CustomerID
+        $Script.CustomerID,
+        $Config.CustomerId
     )
     #Working here
     ### Populate Method Tables with Available Values
@@ -2659,11 +2697,15 @@ function GetInstallMethods {
             ) {
                 # Only use Script Customer ID for Takeover Installations
                 $false
-            }elseif (!$Config.IsAzNableAvailable -and $SC.InstallMethods.UsesAzProxy.(AlphaValue $i)) {
+            }
+            elseif (!$Config.IsAzNableAvailable -and $SC.InstallMethods.UsesAzProxy.(AlphaValue $i)) {
                 # If AzNableProxy configation isn't available and method uses it...
                 $false
+            }elseif ($Config.IsAzNableAvailable -and $SC.InstallMethods.Type.(AlphaValue $i) -eq $SC.InstallMethods.InstallTypes.B -and $Agent.Health.Installed -eq $false){
+                # If the type is AzNableProxy, it is Activation Type install and the agent is not installed
+                $false
             }
-            else { $null -ne $Values[$i] -and "|" -ne $Values[$i] }
+            else {$null -ne $Values[$i] -and "|" -ne $Values[$i] -and $Values[$i] -notlike "*|"}
             "Failed"         = $false
             "FailedAttempts" = 0
             "MaxAttempts"    = $SC.InstallMethods.Attempts.$(AlphaValue $i)
@@ -2778,7 +2820,7 @@ function SelectInstallMethod {
         # ERROR - No Installation Methods Remaining
         MethodSummary
         $Out =
-        ("All available Methods and Attempts to install the " + $NC.Products.Agent.Name + " were unsuccessful.`n"),
+        ("All available Methods and Attempts to install the " + $NC.Products.Agent.Name + " were unsuccessful.`Name"),
         ("Review the Event Log for any entries made by the " + $NC.Products.Agent.InstallerName + " Event Source for more details.")
         Log E 12 $Out -Exit
     }
@@ -2793,6 +2835,8 @@ function UpdateHistory {
     ### Function Body
     ###############################
     # Update Configuration History File
+    # This section is also responsible for:
+    # "Activation Key : Token / Appliance ID (Historical Installation)"
     $LastUpdate =
     if ($Agent.History.Count -gt 0)
     { $Agent.History } else { @{} }
@@ -2830,7 +2874,7 @@ function CheckMSIService {
         # Exit - Windows Installer Service Unavailable
         $Out = (
             "The Windows Installer Service has been unavailable for the timeout period of " +
-            $Config.InstallTimeoutPeriod + " minutes.`n`n" +
+            $Config.InstallTimeoutPeriod + " minutes.`Name`Name" +
             "This could be due to an Installer that is requesting user input to continue. "
         )
         $Out +=
@@ -2886,7 +2930,7 @@ function InstallNET {
     )
     if ($Device.NETProduct -lt (ValidateVersion $Config.NETVersion 2)) {
         # Exit - .NET Framework Installation Failed
-        $Out += ". An error occurred during installation.`n`nReview the Event Log for relevant details."
+        $Out += ". An error occurred during installation.`Name`nReview the Event Log for relevant details."
         Log E 10 $Out -Exit
     }
     $Out += " and was installed successfully."
@@ -2940,7 +2984,7 @@ function VerifyPrerequisites {
     if ($Install.NCServerAccess -eq $false) {
         # Exit - Installer will Fail to Authenticate with Server
         $Out =
-        ("The Device is currently unable to reliably reach the " + $NC.Products.NCServer.Name + ". Installation attempts will fail authentication.`n"),
+        ("The Device is currently unable to reliably reach the " + $NC.Products.NCServer.Name + ". Installation attempts will fail authentication.`Name"),
         "This may be caused by lack of Internet connectivity, a poor connection, or DNS is unavailable or unable to resolve the address.",
         "If this issue persists, verify the <NCServerAddress> value in the Partner Configuration is correct."
         Log E 6 $Out -Exit
@@ -2958,11 +3002,11 @@ function VerifyPrerequisites {
         # Exit - No Available Installation Methods
         $Out =
         if ($null -eq $CustomerID) {
-            @("An " + $NC.Products.Agent.IDName + " was not provided to the Script and is required for Installation.`n")
+            @("An " + $NC.Products.Agent.IDName + " was not provided to the Script and is required for Installation.`Name")
             $ExitCode = 7
         }
         else {
-            @("The " + $NC.Products.Agent.IDName + " provided to the Script [" + $CustomerID + "] is invalid. A valid Customer ID is required for Installation.`n")
+            @("The " + $NC.Products.Agent.IDName + " provided to the Script [" + $CustomerID + "] is invalid. A valid Customer ID is required for Installation.`Name")
             $ExitCode = 8
         }
         $Out +=
@@ -3006,68 +3050,28 @@ function RequestAzWebProxyToken {
     WriteKey $Script.Results.ScriptKey $Script.Execution
     ### Function Body
     ###############################
-
-    
+    ### Attempt to connect to the AzNableProxy
     $Response = $null
     $Uri = "https://$($Config.AzNableProxyUri)/api/Get?Code=$($Config.AzNableAuthCode)&ID="
-    switch ($Install.ChosenMethod.Name) {
-        ### Retrieve token with CustomerID from Appliance.ID
-        $SC.InstallMethods.Names.D {
-            try {
-                $Uri += "$($Agent.Appliance.ID)"
-                $Response = Invoke-RestMethod -Uri $Uri
-            }
-            catch {
-                $Out = "Error retrieving token from $Uri using $($Install.ChosenMethod.Name)"
-                Log E 15 $Out
-            }
-            break
-        }
-        ### Retrieve token with CustomerID from current script
-        $SC.InstallMethods.Names.E {
-            try {
-                $Uri += "$($Script.CustomerID)"
-                $Response = Invoke-RestMethod -Uri $Uri
-            }
-            catch {
-                $Out = $Out = "Error retrieving token from $Uri using $($Install.ChosenMethod.Name)"
-                Log E 15 $Out
-            }
-            break
-        }
-        ### Retrieve token with CustomerID from Partner Config
-        $SC.InstallMethods.Names.I {
-            try {
-                $Uri += "$($Config.CustomerId)"
-                $Response = Invoke-RestMethod -Uri $Uri
-            }
-            catch {
-                $Out = "Error retrieving token from $Uri using $($Install.ChosenMethod.Name)"
-                Log E 15 $Out
-            }
-            break
-        }
-        ### Retrieve token with CustomerID from Script CustomerID
-        $SC.InstallMethods.Names.J {
-            try {
-                $Uri += "$($Script.CustomerId)"
-                $Response = Invoke-RestMethod -Uri $Uri
-            }
-            catch {
-                $Out = "Error retrieving token from $Uri using $($Install.ChosenMethod.Name)"
-                Log E 15 $Out
-            }
-            break
-        }    
+    try {
+        $Uri += "$($Install.ChosenMethod.Value)"
+        $Response = Invoke-RestMethod -Uri $Uri
+    }
+    catch {
+        $Out = "Error retrieving token from $Uri using $($Install.ChosenMethod.Name)"
+        Log E 15 $Out
     }
 
     ### Validate that the response is a GUID
     $Install.ChosenMethod.Token = if ($Response -match $SC.Validation.GUID) { $Response } else { $null }
 
     ### If the method is an Activation Key, populate the value correctly
-    if ($null -ne $Install.ChosenMethod.Token -and $Install.ChosenMethod.Parameter -eq $NC.InstallParameters.A) {
+    if ($null -ne $Install.ChosenMethod.Token -and $Install.ChosenMethod.Type -eq $SC.InstallMethods.InstallTypes.B) {
         $Install.ChosenMethod.Value = NewEncodedKey $Agent.Appliance.AssignedServer $Agent.Appliance.ID $Install.ChosenMethod.Token
-    }   
+    }
+    else {
+        $Install.ChosenMethod.Value = "$($Install.ChosenMethod.Value)|$($Install.ChosenMethod.Token)"
+    }
     
 }
 
@@ -3114,25 +3118,24 @@ function InstallAgent {
         else {
             $Install.AgentString = @(
                 '/S /V" /qn',
+                #Server address
                 (@($NC.InstallParameters.D, $Config.NCServerAddress) -join '='),
+                #Port
                 (@($NC.InstallParameters.E, "443") -join '='),
+                #Protocol
                 (@($NC.InstallParameters.F, "HTTPS") -join '=')
             ) -join ' '
 
             # Gather the token from the AzWebproxy service if appropriate
             if ($Install.ChosenMethod.Type -eq $SC.InstallMethods.InstallTypes.D) {
                 RequestAzWebProxyToken
-                $Install.AgentString += (' ' + (@($NC.InstallParameters.B, $Install.ChosenMethod.Value -join '=')))
-                $Install.AgentString += (' ' + (@($NC.InstallParameters.H, $Install.ChosenMethod.Token -join '=')))
-                $Install.AgentString += (' ' + (@($NC.InstallParameters.C, "1") -join '='))
             }
-            # Otherwise retrieve from the available data
-            else {
-                $Install.AgentString += (' ' + (@($NC.InstallParameters.B, $Install.ChosenMethod.Value.Split('|')[0]) -join '='))
-                $Install.AgentString += (' ' + (@($NC.InstallParameters.H, $Install.ChosenMethod.Value.Split('|')[1]) -join '='))
-                $Install.AgentString += (' ' + (@($NC.InstallParameters.C, "1") -join '='))
-            }
-
+            $CustomerIDParam = $Install.ChosenMethod.Value.Split('|')[0]
+            $TokenParam = $Install.ChosenMethod.Value.Split('|')[1]
+            $Install.AgentString += (' ' + (@($NC.InstallParameters.B, $CustomerIDParam) -join '='))
+            $Install.AgentString += (' ' + (@($NC.InstallParameters.H, $TokenParam) -join '='))
+            # Customer specific flag
+            $Install.AgentString += (' ' + (@($NC.InstallParameters.C, "1") -join '='))
             # Add Proxy String if it Exists
             if ($null -ne $Config.ProxyString)
             { $Install.AgentString += (' ' + (@($NC.InstallParameters.G, $Config.ProxyString) -join '=')) }

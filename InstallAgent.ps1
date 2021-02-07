@@ -190,7 +190,11 @@ param (
 if ($DebugMode.IsPresent) {
   if (Get-Module InstallAgent-Core) {
     Remove-Module InstallAgent-Core
-  }  
+  }
+  $AgentRegPath = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent"
+  if (Test-Path $AgentRegPath){
+    Remove-Item $AgentRegPath -Recurse -Force
+  }
 }
 
 ### N-Central Constants
@@ -410,16 +414,29 @@ $SC.InstallMethods = @{
     "H" = 1
   }
   "Names"        = @{
-    "A" = "Activation Key : Token (Partner Config) / Appliance ID (Existing Installation)"
-    "B" = "Activation Key : Token (Current Script) / Appliance ID (Existing Installation)"
+    #String validated 7/02/2021
+    #Activation Key: Appliance Server/Appliance App ID/Script Token
+    "A" = "Activation Key : Token (Current Script) / Appliance ID (Existing Installation)"
+    #String validated 7/02/2021
+    #Activation Key: Appliance Server/Appliance App ID/Config Token
+    "B" = "Activation Key : Token (Partner Config) / Appliance ID (Existing Installation)"
+    #String validated 6/02/2021 - needs further review, activation key pulled from method UpdateHistory
     "C" = "Activation Key : Token / Appliance ID (Historical Installation)"
+    #String validated 7/02/2021
     "D" = "Activation Key : AzNableProxy Token / Customer ID, Appliance ID (Existing Installation)"
+    #String validated 7/02/2021
     "E" = "Activation Key : Customer ID (Current Script) / AzNableProxy Token / Appliance ID (Existing Installation)"
+    #String validated 7/02/2021
     "F" = "Site ID/Registration Token (Current Script)"
+    #TBD - May remove
     "G" = "Site ID/Registration Token (Historical Installation)"  
+    #String validated 7/02/2021
     "H" = "Customer ID / Registration Token (Partner Config)"
-    "I" = "Customer ID / AzNableProxy Token (Partner Config)"
-    "J" = "Customer ID / AzNableProxy Token (Current Script)"
+    #String validated 7/02/2021
+    "I" = "Customer ID (Current Script) / AzNableProxy Token "
+    #String validated 7/02/2021
+    "J" = "Customer ID (Partner Config) / AzNableProxy Token "
+
   }
   "Type"         = @{
     "A" = "Activation Key: Token/AppId"
