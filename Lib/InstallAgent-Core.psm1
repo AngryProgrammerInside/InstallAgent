@@ -6,11 +6,14 @@
 ###############################
 
 function DebugInstallMethods {
-    
+    ### Function Body
+    ###############################
+    ### This function is not used during normal script operation, it is used for the validation during development
+    # Provides a Gridview of the install methods hashtable
     $paramOrder = @(
         @{n = 'Key'; e = { $key } },
         @{n = 'Name'; e = { $_.Name } },        
-        @{n = 'Parameter'; e = { $_.Parameter } },
+        #@{n = 'Parameter'; e = { $_.Parameter } },
         @{n = 'Available'; e = { $_.Available } },
         @{n = 'Failed'; e = { $_.Failed } },
         @{n = 'Value'; e = { $_.Value } },
@@ -23,6 +26,10 @@ function DebugInstallMethods {
 }
 
 function DebugAppData {
+    ### Function Body
+    ###############################
+    ### This function is not used during normal script operation, it is used for the validation during development
+    # Provides a Gridview of the installed agent and historicall installs
     $paramOrder = @(
         @{n = 'Key'; e = { $key } },
         @{n = 'ID'; e = { $_.ID } },
@@ -41,11 +48,18 @@ function DebugAppData {
 }
 
 function DebugGetProxyTokens {
+    ### Function Body
+    ###############################
+    ### This function is not used during normal script operation, it is used for the validation during development
+    # Function submits all CustomerIDs through the RequestAzWebProxyToken function to retrieve the registration token
+    # Note this updates the InstallMethod.Value param, so it may prevent further execution depend on debug point
+    # To reset, use DiagnoseAgent and GetInstallMethods functions
     $SC.InstallMethods.UsesAzProxy.Keys | % {
         if ($SC.InstallMethods.UsesAzProxy[$_]) {
             $Install.ChosenMethod = $Install.MethodData.$_
-            RequestAzWebProxyToken
-
+            if ($null -ne $Install.ChosenMethod.Value){
+                RequestAzWebProxyToken
+            }
         }
     }
 }
@@ -2688,7 +2702,6 @@ function GetInstallMethods {
         "$($Config.CustomerId)|$($Config.RegistrationToken)",
         $Script.CustomerID,
         $Config.CustomerId
-
     )
     #Working here
     ### Populate Method Tables with Available Values
