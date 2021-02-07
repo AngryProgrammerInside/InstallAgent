@@ -1,12 +1,47 @@
+### 1.0.0 on 2021-02-07 - David Brooks, Premier Technology Solutions
+##################################################################
+# - Adapted updated Batch file version of InstallAgent to PowerShell
+Write-Host "CustomerID: $($args[0])" -ForegroundColor Green
+Write-Host "Token: $($args[1])" -ForegroundColor Green
+$CustomerID = $args[0]
+$RegistrationToken = $args[1]
+
+# - Launcher Script Name
+$LauncherScript="Agent Setup Launcher"
+# - Setup Script Name
+$SetupScript="Agent Setup Script"
+if (-not [System.Diagnostics.EventLog]::SourceExists($LauncherScript)){
+    New-EventLog -Source $LauncherScript -LogName Application
+}
+
+# Device Info Table
+$Device = @{}
+#Get OS version information from WMI
+$WMIos = Get-WmiObject Win32_OperatingSystem
+[Version] $Device.OSBuild =
+if ($null -eq $WMIos.Version)
+#If unable to retrieve from WMI, get from CIM
+{ (Get-CimInstance Win32_OperatingSystem).Version }
+else
+{ $WMIos.Version }
+# Operating System Architecture
+if ($Device.OSBuild -lt "6.1") {
+    Write-Host "OS Not Compatible with either the Agent or the $SetupScript" -ForegroundColor Red
+    Write-EventLog -EntryType Error -EventId 13 -LogName Application -Source $LauncherScript -Message  "The OS is not compatible with the N-Central Agent or the $SetupScript." > $null
+    Exit 2
+}
+
+# Attempt to create local cache folder for InstallAgent
 $TempFolder = "$env:windir\Temp\AGPO"
 if (!(Test-Path $TempFolder)) {
-    New-Item $TempFolder -ItemType Directory -Force
+    New-Item $TempFolder -ItemType Directory -Force > $Null
     if (!$?) {
         Write-Host "Unable to create temp folder" -ForegroundColor Red
+        Write-EventLog -EntryType Error -EventId 13 -LogName Application -Source $LauncherScript -Message  "$SetupScript is unable to create temp folder in $TempFolder for install" > $null
         Exit 2
     }
 }
-
+# Copy contents to local cache folder
 $DeployFolder = "$(Split-Path $MyInvocation.MyCommand.Path -Parent)"
 Write-Host "Copying $DeployFolder to local cache in $TempFolder"
 Copy-Item "$DeployFolder\*" "$TempFolder\" -Recurse -Force
@@ -14,24 +49,55 @@ Write-Host "Number of Arguments $($args.Count)"
 switch ($args.Count) {
     0 {
         # Only PartnerConfig.xml values will be used
-        & "$env:windir\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -WindowStyle Hidden -File $TempFolder\InstallAgent.ps1 -LauncherPath $DeployFolder"
+        Write-Host "Launching with no parameters" -ForegroundColor Green
+        $p = Start-Process -FilePath "$env:windir\System32\WindowsPowerShell\v1.0\powershell.exe" -ArgumentList "-ExecutionPolicy Bypass -NoLogo -NoProfile -WindowStyle Hidden -File $TempFolder\InstallAgent.ps1 -LauncherPath $DeployFolder\" -PassThru
         break
     }
-    1 {
+    1 {        
         # CustomerID from script parameter has preference over PartnerConfig.xml, will failback to PartnerConfig.xml
-        & "$env:windir\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -WindowStyle Hidden -File $TempFolder\InstallAgent.ps1 -CustomerID $($args[0]) -LauncherPath $DeployFolder"
+        Write-Host "Launching with CustomerID" -ForegroundColor Green
+        $p = Start-Process -FilePath "$env:windir\System32\WindowsPowerShell\v1.0\powershell.exe" -ArgumentList "-ExecutionPolicy Bypass -NoLogo -NoProfile -WindowStyle Hidden -File $TempFolder\InstallAgent.ps1 -CustomerID $CustomerID -LauncherPath $DeployFolder\" -PassThru
         break
     }
     2 {
         # Partner token from script parameter has preference over PartnerConfig.xml, will failback to partnerconfig.xml
-        & "$env:windir\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -WindowStyle Hidden -File $TempFolder\InstallAgent.ps1 -CustomerID $($args[0]) -RegistrationToken $($args[1]) -LauncherPath $DeployFolder"
+        Write-Host "Launching with CustomerID and Token" -ForegroundColor Green
+        $p = Start-Process -FilePath "$env:windir\System32\WindowsPowerShell\v1.0\powershell.exe" -ArgumentList "-ExecutionPolicy Bypass -NoLogo -NoProfile -WindowStyle Hidden -File $TempFolder\InstallAgent.ps1 -CustomerID $CustomerID -RegistrationToken $RegistrationToken -LauncherPath $DeployFolder\" -PassThru
         break
     }
 }
 # Successfully launched...
-if (!$?) {
-    Write-Host "Successfully launched InstallAgent script"
+
+if ($null -eq $p){
+    Write-EventLog -EntryType Error -EventId 13 -LogName Application -Source $LauncherScript -Message  "$SetupScript encountered an error starting the launcher" > $null
+    Exit 2
+}
+
+Write-Host "Launched InstallAgent script on $($p.Id), waiting on Exit"
+$p.WaitForExit()
+
+$RegPaths = @{
+    Summary = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent"
+    Installation = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent\Installation"
+    Diagnosis = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent\Diagnosis"
+}
+
+if ($p.ExitCode -eq 0){
+    Write-Host "Script ran successfully, displaying registry results:" -ForegroundColor Green
+    $RegPaths.Keys | % { 
+        if (Test-Path $RegPaths[$_]){
+        Write-Host "$($_): " -ForegroundColor Green -NoNewline;
+        Get-ItemProperty $RegPaths[$_] |Select * -ExcludeProperty PS* | fl *}
+        }
+    Write-Host "Check logs for additional details"
 }
 else {
-    Write-Host "Error launching InstallAgent" -ForegroundColor Red
+    Write-Host "Script ran successfully, displaying registry results:"
+    $RegPaths.Keys | % { 
+        if (Test-Path $RegPaths[$_]){
+        Write-Host "$($_): " -ForegroundColor Green -NoNewline;
+        Get-ItemProperty $RegPaths[$_] |Select * -ExcludeProperty PS* | fl *}
+        }
+    Write-Host "Check logs for additional details"
+    Write-EventLog -EntryType Error -EventId 13 -LogName Application -Source $LauncherScript -Message  "$SetupScript encountered an error starting the launcher" > $null
 }

@@ -184,7 +184,7 @@ function Quit {
     if (!$DebugMode.isPresent) {
         Remove-Item $Script.Path.TempFolder -Force -Recurse 2>$null
     }    
-    exit
+    exit $Code
 }
 
 function Log {

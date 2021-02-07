@@ -191,10 +191,11 @@ if ($DebugMode.IsPresent) {
   if (Get-Module InstallAgent-Core) {
     Remove-Module InstallAgent-Core
   }
-  $reg = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent"
-  if (Test-Path $reg){
-    Remove-Item $reg -Recurse -Force
+  $AgentRegPath = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent"
+  if (Test-Path $AgentRegPath){
+    Remove-Item $AgentRegPath -Recurse -Force
   }
+  Set-PSBreakpoint -Script $MyInvocation.MyCommand.Path -Line 794
 }
 
 ### N-Central Constants
@@ -414,27 +415,27 @@ $SC.InstallMethods = @{
     "H" = 1
   }
   "Names"        = @{
-    #String Validated 6/02/2021
+    #String validated 7/02/2021
     #Activation Key: Appliance Server/Appliance App ID/Script Token
     "A" = "Activation Key : Token (Current Script) / Appliance ID (Existing Installation)"
-    #String validated 6/02/2021
+    #String validated 7/02/2021
     #Activation Key: Appliance Server/Appliance App ID/Config Token
     "B" = "Activation Key : Token (Partner Config) / Appliance ID (Existing Installation)"
     #String validated 6/02/2021 - needs further review, activation key pulled from method UpdateHistory
     "C" = "Activation Key : Token / Appliance ID (Historical Installation)"
-    #Pending re-validation
+    #String validated 7/02/2021
     "D" = "Activation Key : AzNableProxy Token / Customer ID, Appliance ID (Existing Installation)"
-    #Pending re-validation
+    #String validated 7/02/2021
     "E" = "Activation Key : Customer ID (Current Script) / AzNableProxy Token / Appliance ID (Existing Installation)"
-    #Pending re-validation
+    #String validated 7/02/2021
     "F" = "Site ID/Registration Token (Current Script)"
-    #Pending re-validation
+    #TBD - May remove
     "G" = "Site ID/Registration Token (Historical Installation)"  
-    #Pending re-validation
+    #String validated 7/02/2021
     "H" = "Customer ID / Registration Token (Partner Config)"
-    #Pending re-validation
+    #String validated 7/02/2021
     "I" = "Customer ID (Current Script) / AzNableProxy Token "
-    #Pending re-validation
+    #String validated 7/02/2021
     "J" = "Customer ID (Partner Config) / AzNableProxy Token "
 
   }
