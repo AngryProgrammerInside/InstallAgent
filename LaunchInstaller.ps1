@@ -90,26 +90,26 @@ while (-not $p.HasExited) {
         Clear-Host
         if (Test-Path $RegPaths.Summary) {
             Write-Host "Progress: " -ForegroundColor Green -NoNewline
-            Get-ItemProperty $RegPaths.Summary | Select * -ExcludeProperty PS* | fl *
+            Get-ItemProperty $RegPaths.Summary | Select-Object * -ExcludeProperty PS* | Format-List *
         }
     }
 }
 if ($p.ExitCode -eq 0) {
     Write-Host "Script ran successfully, displaying registry results:" -ForegroundColor Green
-    $RegPaths.Keys | % { 
+    $RegPaths.Keys | ForEach-Object { 
         if (Test-Path $RegPaths[$_]) {
             Write-Host "$($_): " -ForegroundColor Green -NoNewline;
-            Get-ItemProperty $RegPaths[$_] | Select * -ExcludeProperty PS* | fl *
+            Get-ItemProperty $RegPaths[$_] | Select-Object * -ExcludeProperty PS* | Format-List *
         }
     }
     Write-Host "Check logs for additional details"
 }
 else {
     Write-Host "Script ran successfully, displaying registry results:"
-    $RegPaths.Keys | % { 
+    $RegPaths.Keys | ForEach-Object { 
         if (Test-Path $RegPaths[$_]) {
             Write-Host "$($_): " -ForegroundColor Green -NoNewline;
-            Get-ItemProperty $RegPaths[$_] | Select * -ExcludeProperty PS* | fl *
+            Get-ItemProperty $RegPaths[$_] | Select-Object * -ExcludeProperty PS* | Format-List *
         }
     }
     Write-Host "Check logs for additional details"
