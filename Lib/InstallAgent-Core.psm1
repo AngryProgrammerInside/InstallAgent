@@ -22,7 +22,7 @@ function DebugInstallMethods {
         @{n = 'Attempts'; e = { $_.Attempts } },
         @{n = 'MaxAttempts'; e = { $_.MaxAttempts } }
     )
-    $Install.MethodData.Keys | % { $key = $_; $Install.MethodData[$_] | % { [PSCustomObject]$_ } } | Select $paramOrder | Sort Key | Out-GridView
+    $Install.MethodData.Keys | ForEach-Object { $key = $_; $Install.MethodData[$_] | ForEach-Object { [PSCustomObject]$_ } } | Select-Object $paramOrder | Sort-Object Key | Out-GridView
 }
 
 function DebugAppData {
@@ -44,7 +44,7 @@ function DebugAppData {
     $keys = @("Appliance", "History")
     $
     
-    Agent.Keys | ? { $keys -contains $_ } | % { $key = $_; $Agent[$_] } | % { [PSCustomObject]$_ } | Select $paramOrder | Sort Key | Out-GridView
+    Agent.Keys | Where-Object { $keys -contains $_ } | ForEach-Object { $key = $_; $Agent[$_] } | ForEach-Object { [PSCustomObject]$_ } | Select-Object $paramOrder | Sort-Object Key | Out-GridView
 }
 
 function DebugGetProxyTokens {
@@ -54,10 +54,10 @@ function DebugGetProxyTokens {
     # Function submits all CustomerIDs through the RequestAzWebProxyToken function to retrieve the registration token
     # Note this updates the InstallMethod.Value param, so it may prevent further execution depend on debug point
     # To reset, use DiagnoseAgent and GetInstallMethods functions
-    $SC.InstallMethods.UsesAzProxy.Keys | % {
+    $SC.InstallMethods.UsesAzProxy.Keys | ForEach-Object {
         if ($SC.InstallMethods.UsesAzProxy[$_]) {
             $Install.ChosenMethod = $Install.MethodData.$_
-            if ($null -ne $Install.ChosenMethod.Value){
+            if ($null -ne $Install.ChosenMethod.Value) {
                 RequestAzWebProxyToken
             }
         }
@@ -2701,11 +2701,12 @@ function GetInstallMethods {
             elseif (!$Config.IsAzNableAvailable -and $SC.InstallMethods.UsesAzProxy.(AlphaValue $i)) {
                 # If AzNableProxy configation isn't available and method uses it...
                 $false
-            }elseif ($Config.IsAzNableAvailable -and $SC.InstallMethods.Type.(AlphaValue $i) -eq $SC.InstallMethods.InstallTypes.B -and $Agent.Health.Installed -eq $false){
+            }
+            elseif ($Config.IsAzNableAvailable -and $SC.InstallMethods.Type.(AlphaValue $i) -eq $SC.InstallMethods.InstallTypes.B -and $Agent.Health.Installed -eq $false) {
                 # If the type is AzNableProxy, it is Activation Type install and the agent is not installed
                 $false
             }
-            else {$null -ne $Values[$i] -and "|" -ne $Values[$i] -and $Values[$i] -notlike "*|"}
+            else { $null -ne $Values[$i] -and "|" -ne $Values[$i] -and $Values[$i] -notlike "*|" }
             "Failed"         = $false
             "FailedAttempts" = 0
             "MaxAttempts"    = $SC.InstallMethods.Attempts.$(AlphaValue $i)

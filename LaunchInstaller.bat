@@ -24,11 +24,15 @@ REM - Working Folder
 SET TempFolder=C:\Windows\Temp\AGPO
 REM - Maximum Download Attempts (per File)
 SET DLThreshold=3
+REM - Don't use the arguments. This way, CustomerID and Registration Token aren't taken from the arguments. This to support older GPO's, that had CustomerID and Domainname as arguments
+SET NoArgs=0
 REM = ### DEFINITIONS
 @ECHO OFF
-set argCount=0
-for %%x in (%*) do (
-   set /A argCount+=1
+set ArgCount=0
+IF %NoArgs% EQU 0 (
+  FOR %%x in (%*) do (
+    set /A ArgCount+=1
+  )
 )
 ECHO Number of arguments: %ArgCount%
 REM - Launcher Script Name
@@ -48,17 +52,17 @@ SET DeployLib=%DeployFolder%Lib
 REM - OS Display Name
 FOR /F "DELIMS=|" %%A IN ('WMIC OS GET NAME ^| FIND "Windows"') DO SET OSCaption=%%A
 ECHO "%OSCaption%" | FIND "Server" >NUL
-REM - Server OS Type
-IF %ERRORLEVEL% EQU 0 (SET OSType=Server)
+REM - Server OS Type - Next line is Legacy
+REM IF %ERRORLEVEL% EQU 0 (SET OSType=Server)
 REM - OS Build Number
 FOR /F "TOKENS=2 DELIMS=[]" %%A IN ('VER') DO SET OSBuild=%%A
 SET OSBuild=%OSBuild:~8%
-REM - OS Architecture
-ECHO %PROCESSOR_ARCHITECTURE% | FIND "64" >NUL
-IF %ERRORLEVEL% EQU 0 (SET OSArch=x64) ELSE (SET OSArch=x86)
-REM - Program Files Folder
-IF "%OSArch%" EQU "x64" (SET "PF32=%SYSTEMDRIVE%\Program Files (x86)")
-IF "%OSArch%" EQU "x86" (SET "PF32=%SYSTEMDRIVE%\Program Files")
+REM - OS Architecture - Next 2 lines are obsolete
+REM ECHO %PROCESSOR_ARCHITECTURE% | FIND "64" >NUL
+REM IF %ERRORLEVEL% EQU 0 (SET OSArch=x64) ELSE (SET OSArch=x86)
+REM - Program Files Folder - Next 2 lines are obsolete
+REM IF "%OSArch%" EQU "x64" (SET "PF32=%SYSTEMDRIVE%\Program Files (x86)")
+REM IF "%OSArch%" EQU "x86" (SET "PF32=%SYSTEMDRIVE%\Program Files")
 
 REM = ### BODY
 ECHO == Launcher Started ==
@@ -74,7 +78,7 @@ IF "%OSBuild:~0,2%" EQU "6." (
   IF %OSBuild:~2,1% GTR 0 (GOTO LaunchScript)
 )
 REM - Windows Vista and Server 2008
-IF "%OSBuild:~0,3%" EQU "6.0" (SET OSLevel=Vista)
+IF "%OSBuild:~0,3%" EQU "6.0" (SET LegacyWait=1)
 REM - Windows XP x64 and Server 2003
 IF "%OSBuild:~0,3%" EQU "5.2" (GOTO QuitIncompatible)
 REM - Windows XP
@@ -150,6 +154,7 @@ GOTO QuitSuccess
 :QuitIncompatible
 ECHO X  OS Not Compatible with either the Agent or the %SetupScript%
 EVENTCREATE /T INFORMATION /ID 13 /L APPLICATION /SO "%LauncherScript%" /D "The OS is not compatible with the N-Central Agent or the %SetupScript%." >NUL
+SET LegacyWait=1
 GOTO Done
 
 :QuitFailure
@@ -167,4 +172,8 @@ RD /S /Q "%TempFolder%" 2>NUL
 :Done
 ECHO == Launcher Finished ==
 ECHO Exiting...
-PING 192.0.2.1 -n 1 -w 10000 >NUL
+IF %LegacyWait% EQU 1 (
+  PING 192.0.2.1 -n 10 -w 1000 >NUL
+) ELSE (
+  TIMEOUT /T 10
+)
