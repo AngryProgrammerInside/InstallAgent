@@ -27,8 +27,12 @@ $SOAgentFileVersion
 
 $AzNableProxyUri
 $AzNableAuthCode
-And the following variable defines the path to the Partner COnfig
-$PartnerConfigFile = "C:\Windows\SYSVOL\domain\scripts\Agent\PartnerConfig.xml"
+And the following variable defines the path to the Partner Config
+$NetLogonShare = (get-smbshare -name NetLogon -ErrorAction SilentlyContinue).Path
+# Failsafe to try it with a hardcoded version if no NetLogon share is found
+If (-not $NetLogonShare) { $NetLogonShare = "C:\Windows\SYSVOL\domain\scripts" }
+$PartnerConfigFile = $NetLogonShare + "\Agent\PartnerConfig.xml"
+
 #>
 
 ### Begin Code
