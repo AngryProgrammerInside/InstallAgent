@@ -5,6 +5,7 @@ SET NL=^
 
 REM = ### ABOUT
 REM - Agent Setup Launcher
+REM   Updated by David B, PTS. Robby S, b-inside. 2021
 REM   by Ryan Crowther Jr, RADCOMP Technologies - 2019-08-26
 REM - Original Script (InstallAgent.vbs) by Tim Wiser, GCI Managed IT - 2015-03
 
