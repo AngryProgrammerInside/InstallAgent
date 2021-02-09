@@ -1,5 +1,11 @@
 # RefreshToken
 
+# Get nCentral server info based on the installed agent
+$AgentConfigFolder = (Get-WmiObject win32_service -filter "Name like 'Windows Agent Service'").PathName
+$AgentConfigFolder = $AgentConfigFolder.Replace("bin\agent.exe", "config").Replace('"', '')
+$ServerConfigXML = [xml](Get-Content "$AgentConfigFolder\ServerConfig.xml")
+$serverHost = $ServerConfigXML.ServerConfig.ServerIP
+
 # Get $PartnerConfigFile based on the NetLogon share and the $NetworkFolder
 $NetLogonShare = (get-smbshare -name NetLogon -ErrorAction SilentlyContinue).Path
 # Failsafe to try it with a hardcoded version if no NetLogon share is found
@@ -13,7 +19,7 @@ if (Test-Path $PartnerConfigFile) {
     $xmlDocument.Config.Branding.ErrorContactInfo = $Branding
 
     # Server
-    $xmlDocument.Config.Server.NCServerAddress = $NCServerAddress
+    $xmlDocument.Config.Server.NCServerAddress = $serverHost
 
     ### Deployment
     # LocalFolder, NetworkFolder

@@ -51,6 +51,12 @@ if (Test-Path $AgentMaintenanceSchedulesConfig) {
     $CustomerID = [Regex]::Matches($RebootMessagelogoURL, '(?<=\=)(.*?)(?=&)').Value
 }
 
+# Get nCentral Server based on the installed agent
+$AgentConfigFolder = (Get-WmiObject win32_service -filter "Name like 'Windows Agent Service'").PathName
+$AgentConfigFolder = $AgentConfigFolder.Replace("bin\agent.exe", "config").Replace('"', '')
+$ServerConfigXML = [xml](Get-Content "$AgentConfigFolder\ServerConfig.xml")
+$serverHost = $ServerConfigXML.ServerConfig.ServerIP
+
 ### Setup connection to NC Webproxy namespace, this will be used later for NC API calls
 $NWSNameSpace = "NAble" + ([guid]::NewGuid()).ToString().Substring(25)
 $KeyPairType = "$NWSNameSpace.EiKeyValue"
@@ -64,23 +70,9 @@ $nws = New-Webserviceproxy $bindingURL -Namespace ($NWSNameSpace)
 ### Method 2 of obtaining customer ID
 ### Method 2 provied by Robby S, b-inside
 if ($CustomerId -eq -1) {
-    $AgentConfigFolder = (Get-WmiObject win32_service -filter "Name like 'Windows Agent Service'").PathName
-    $AgentConfigFolder = $AgentConfigFolder.Replace("bin\agent.exe", "config").Replace('"', '')
-    function Get-NCentralSvr() {
-        $ConfigXML = [xml](Get-Content "$Script:AgentConfigFolder\ServerConfig.xml")
-        $ConfigXML.ServerConfig.ServerIP
-    }
-
-    # Get the device's ApplianceID out of the ApplianceConfig.xml file
-    function Get-ApplianceID() {
-        $ConfigXML = [xml](Get-Content "$Script:AgentConfigFolder\ApplianceConfig.xml")
-        $ConfigXML.ApplianceConfig.ApplianceID
-    }
-
-    # Determine who we are and where the N-Central server is
-    $serverHost = Get-NCentralSvr
-    $applianceID = Get-ApplianceID
-
+    # Determine who we are
+    $ApplianceConfigXML = [xml](Get-Content "$Script:AgentConfigFolder\ApplianceConfig.xml")
+    $applianceID = $ApplianceConfigXML.ApplianceConfig.ApplianceID
 
     # Setup Keypairs array and Keypair object with search params for deviceGet method used against the NC server
     $KeyPairs = @()
@@ -100,12 +92,11 @@ if ($CustomerId -eq -1) {
     write-host "CustomerId = $CustomerId"
 }
 
-$badCustomerIds = @(-1,"-1","",$null)
-if ($badCustomerIds -contains $CustomerId){
+$badCustomerIds = @(-1, "-1", "", $null)
+if ($badCustomerIds -contains $CustomerId) {
     Write-Host "Unable to retrieve valid CustomerID, exiting"
     Exit 2
 }
-
 
 ### Now we gather the token from the N-Central server using the provided information
 # Code snippet credit goes to Chris Reid, Jon Czerwinski and Kelvin Telegaar
@@ -121,27 +112,24 @@ Catch {
     Write-Host "Could not connect: $($_.Exception.Message)"
     exit
 }
- 
+
 $found = $False
 $rowid = 0
 While ($rowid -lt $CustomerList.Count -and $found -eq $False) {
-    
     If ($customerlist[$rowid].items[0].Value -eq [int]$CustomerID) {
         Foreach ($rowitem In $CustomerList[$rowid].items) {
             If ($rowitem.key -eq "customer.registrationtoken") {
                 $RetrievedRegistrationToken = $rowitem.value
                 If ($RetrievedRegistrationToken -eq "") {
-                    "Note that a valid Registration Token was not returned even though the customer was found. This happens when an agent install has never been downloaded for that customer. Try to download an agent from the N-Central UI and run this script again"
+                    Write-Host "Note that a valid Registration Token was not returned even though the customer was found. This happens when an agent install has never been downloaded for that customer. Try to download an agent from the N-Central UI and run this script again"
                 }
             }
         }
     }
- 
     $rowid++
 }
 
 Write-Host "Here is the registration token for CustomerID" $CustomerID":" $RetrievedRegistrationToken -ForegroundColor Green
-
 
 # Refresh Partner XML
 if (Test-Path $PartnerConfigFile) {
