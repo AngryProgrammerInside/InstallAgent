@@ -1,5 +1,11 @@
 # RefreshToken
-# $PartnerConfigFile = "C:\Windows\SYSVOL\domain\scripts\InstallAgent\PartnerConfig.xml"
+
+# Get $PartnerConfigFile based on the NetLogon share and the $NetworkFolder
+$NetLogonShare = (get-smbshare -name NetLogon -ErrorAction SilentlyContinue).Path
+# Failsafe to try it with a hardcoded version if no NetLogon share is found
+If (-not $NetLogonShare) { $NetLogonShare = "C:\Windows\SYSVOL\domain\scripts" }
+$PartnerConfigFile = $NetLogonShare + "\" + $NetworkFolder + "\PartnerConfig.xml"
+
 if (Test-Path $PartnerConfigFile) {
     [xml]$xmlDocument = Get-Content -Path $PartnerConfigFile
 
