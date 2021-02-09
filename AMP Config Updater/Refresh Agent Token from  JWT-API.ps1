@@ -27,15 +27,16 @@ $SOAgentFileVersion
 
 $AzNableProxyUri
 $AzNableAuthCode
-And the following variable defines the path to the Partner Config
-$NetLogonShare = (get-smbshare -name NetLogon -ErrorAction SilentlyContinue).Path
-# Failsafe to try it with a hardcoded version if no NetLogon share is found
-If (-not $NetLogonShare) { $NetLogonShare = "C:\Windows\SYSVOL\domain\scripts" }
-$PartnerConfigFile = $NetLogonShare + "\Agent\PartnerConfig.xml"
 
 #>
 
 ### Begin Code
+
+# Get the path based on the NetLogon share
+$NetLogonShare = (get-smbshare -name NetLogon -ErrorAction SilentlyContinue).Path
+# Failsafe to try it with a hardcoded version if no NetLogon share is found
+If (-not $NetLogonShare) { $NetLogonShare = "C:\Windows\SYSVOL\domain\scripts" }
+$PartnerConfigFile = $NetLogonShare + "\" + $NetworkFolder + "\PartnerConfig.xml"
 
 ### Method 1 of retrieving CustomerID from AgentMaintenanceSchedules.xml
 ### Method 1 credited to Prejay of Doherty.
