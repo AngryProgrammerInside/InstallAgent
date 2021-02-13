@@ -1,26 +1,80 @@
 # InstallAgent Automation Suite
 
+## Table of Contents
+
+- [InstallAgent Automation Suite](#installagent-automation-suite)
+  * [New and improved Features since AgentDeploymentPackage](#new-and-improved-features-since-agentdeploymentpackage)
+  * [Key Features](#key-features)
+- [Components](#components)
+  * [Deployment Package](#deployment-package)
+  * [AMP-Based Custom Service Package](#amp-based-custom-service-package)
+- [Preparation](#preparation)
+  * [1 - Update the Partner Configuration](#1---update-the-partner-configuration)
+  * [2 - Configure N-Central for Automatic Device Import](#2---configure-n-central-for-automatic-device-import)
+  * [3 - Setup a Deployment Package](#3---setup-a-deployment-package)
+- [Deployment](#deployment)
+  * [1 - Choose a Deployment Method](#1---choose-a-deployment-method)
+    + [On-Demand Deployment](#on-demand-deployment)
+    + [Group Policy Deployment](#group-policy-deployment)
+  * [OPTIONAL](#optional)
+  * [1a - Setup the N-Central Custom Service (Version 4.xx)](#1a---setup-the-n-central-custom-service--version-4xx-)
+  * [2 - Review Deployment Package Results](#2---review-deployment-package-results)
+    + [Windows Event Log](#windows-event-log)
+    + [Windows Registry](#windows-registry)
+      - [InstallAgent Key](#installagent-key)
+      - [Diagnosis Key](#diagnosis-key)
+      - [Installation Key](#installation-key)
+      - [Repair Key](#repair-key)
+    + [N-Central Custom Service](#n-central-custom-service)
+- [Testing and Troubleshooting](#testing-and-troubleshooting)
+    + [Agent Setup Launcher Exit Codes](#agent-setup-launcher-exit-codes)
+    + [Agent Setup Script Exit Codes](#agent-setup-script-exit-codes)
+- [Excluding Devices](#excluding-devices)
+- [Routine Updates](#routine-updates)
+- [Credits](#credits)
+
 This is a community-based Automation Suite intended as a replacement for the stock N-central Group Policy Installer Script as provided by N-able. It is not supported by SolarWinds MSP or N-able, so please do not contact their support department regarding any problems or questions about this script. In addition, please do not contact the support departments of any individual Partners in the SolarWinds MSP Community regarding the Automation Suite or its components.
 
-If you discover a problem with any component of the Automation Suite or have ideas on how it could be improved, post an issue on GitHub [](https://github.com/N-able/AgentDeploymentPackage/issues). Alternatively, post on the NRC discussion forum.
+This script is a fork of Ryan Crowther Jr's AgentDeploymentPackage on GitHub [](https://github.com/N-able/AgentDeploymentPackage/)
+
+If you discover a problem with any component of the Automation Suite or have ideas on how it could be improved, post an issue on GitHub [](https://github.com/AngryProgrammerInside/InstallAgent/issues). Alternatively, post on the N-Central Slack Community chat.
 
 These tools are provided as-is, in the best of faith, by those Partners and Community Members involved in their development. If you use this in your environment, we would love to hear from you on GitHub!
 
-# Key Features
+## New and improved Features since AgentDeploymentPackage 5.0.1
+*   Registration token install method:
+    *   Activation Key methods for upgrades
+    *   Registration Key methods for new installs/repairs
+*   Sources for the registration token can include:
+    *   Script input parameters
+    *   A configuration file located in the root of the script folder
+    *   Kelvin Tegelaar's AzNableProxy via an Azure Cloud function also on GitHub under [KelvinTegelaar/AzNableProxy](https://github.com/KelvinTegelaar/AzNableProxy)
+    *   Last successful install configuration saved to a local file
+*   Functioning N-Central AMP scripts that support 2 methods for updating the configuration file used for installation
+    *   Direct update of Customer ID/Registration Token and other values from N-Central Custom Device Property (CDP) injected via N-Central API See: [How to N-Central API Automation](https://github.com/AngryProgrammerInside/NC-API-Documentation) for examples
+    *   Automatic update of Customer ID/Registration token from values pulled from local Agent/Maintenance XML along with provided JWT (see above documentation)
+*   Legacy Support: If you still have old values within your GPO, you can use a flag within the LaunchInstaller.bat to ignore provided parameters and rely upon the configuration file
+*   Custom installation method data
+    *   Through additional modules you can use your own source for CustomerID/Registration Token enumeration
+    *   A sample module is provided
+*   Added a new LaunchInstaller.ps1 while still providing LaunchInstaller.bat, either can be used but those wanting to move away from batch files can.
+*   Optional upload of installation telemetry to Azure Cloud, giving insight into success/failure to help track checkins against N-Central
+    *   Example modules provided
+*   Quality of Life for development and debugging:
+    *   Added debugmode to the InstallAgent.ps1 to avoid self destruct and reload of modules
+    *   Added debug function to provide Gridviews of common tables
+    *   For more details on development debugging of this script, check out this page on GitHub
+
+## Key Features
 
 The **InstallAgent Automation Suite** provides the following key features for deployment and facilitation of the N-Central Agent:
 
-*   Automatic Installation of up to 2 distinct versions of the N-Central Agent per Domain environment, including:
-    *   N-Central System-Level Agent 11.0.0.1114 (the latest Agent version that does not require .NET Framework 4.5.2, and therefore still compatible with Windows XP / Server 2003)
-
+*   Automatic Installation of up to 2 distinct versions of the N-Central Agent
 *   Automatic Installation of prerequisite software required by the **Agent Setup Script** and the N-Central Agent which, at time of publication, includes:
     *   N-Central Agent Requirements
         *   .NET Framework 4.5.2 for Current Agents (11.0.1.xxxx and Above)
-        *   .NET Framework 4.0 for Legacy Agents (11.0.0.xxxx and Below)
     *   Script Requirements
-        *   PowerShell 2.0 for XP / Server 2003 / Vista / Server 2008 (requires manual reboot after Installation)
-        *   .NET Framework 2.0 SP1 for XP / Server 2003
-        *   Service Packs for XP / Server 2003 / Vista / Server 2008 (requires manual reboot after Installation)
+        *   PowerShell 2.0 for Windows 7 / Server 2008 R2 and up
 
 *   Boot-Time or On-Demand Detection and Automatic Repair of degraded or non-functional Agents with the following symptoms:
     *   Stopped Agent Service(s)/Process(es)
@@ -48,23 +102,15 @@ The **InstallAgent Automation Suite** is comprised of several Components to aid 
 The **Deployment Package** is suitable by itself for all deployments, and contains the following items:
 
 *   **AGENT** Folder
+    *   **AMP Config Updater** folder
+        *   **Refresh Agent from JWT-API.amp** - **AMP wrapper**, for below ps1 file that uses local agent information and a JWT token to automatically populate a PartnerConfig.xml
+        *   **Refresh Agent Token from  JWT-API.ps1** - **PS Code** for populating PartnerConfig
+        *   **Refresh Agent Token from CP.amp** - **AMP wrapper**, for below ps1 file that populates the PartnerConfig from your N-Central Customer Property
+        *   **Refresh Agent Token from CP.ps1** - **PS Code** for populating PartnerConfig from CP
     *   **CurrentAgent** Folder
         *   <sup>1</sup>**NET4_5_2-Universal.exe** - .NET Framework Installer required by Current Agents (11.0.1.xxxx and Above)
-    *   **LegacyAgent** Folder
-        *   <sup>1</sup>**NET4_0-Universal.exe** - .NET Framework Installer required by Legacy Agents (11.0.0.xxxx and Below)
-        *   **WindowsAgentSetup.exe** - System-Level Agent Installer 11.0.0.1114 (latest Agent Installer compatible with Windows XP / Server 2003)
     *   **Lib** Folder
         *   **InstallAgent-Core.psm1** - Core Functions file for the **Agent Setup Script** (InstallAgent.ps1) which contains most of its key operations
-    *   **PS2Install** Folder
-        *   **XPTools** Folder - Windows Support Tools for Windows XP / Server 2003 (Allows for Command-Line File Download)
-            *   **2003** Folder
-                *   support.cab
-                *   suptools.msi
-            *   **XP** Folder
-                *   sup_pro.cab
-                *   sup_srv.cab
-                *   support.cab
-                *   suptools.msi
     *   **InstallAgent.ps1** - **Agent Setup Script,** the main/wrapper script, which contains most pre-defined constants and structures for execution
     *   **LaunchInstaller.bat** - **Agent Setup Launcher,** the launcher script, which is called On-Demand (click-to-run) or by Group Policy (calling the Launcher by either method **requires an N-Central Customer/Site ID number as a Parameter for any new Agent installations**)
     *   **PartnerConfig.xml** - **Partner Configuration,** which is used to dictate most variable options to the **Agent Setup Script**
@@ -83,6 +129,19 @@ The **Custom Service Package** contains the following items:
     *   **InstallAgent status.amp** - Automation Policy run by the Custom Service
     *   **InstallAgent status - Tim Wiser.amp** - Automation Policy run by the Custom Service, for **Deployment Packages** still using Tim's Registry key (4.01 and Below)
     *   **Agent Installer Script Status.xml** - Custom Service Configuration file
+
+## Custom PowerShell modules
+The default InstallAgent-Core.psm1 module provides the default behaviors, and now includes AzNableProxy token lookup by default.
+
+By using custom modules that override default funtions you can achieve most any features you need for edge case deployments.
+
+Add your custom modules to the **Agent\Lib** folder and update the $SC.Names.LibraryFiles array.
+
+Examples of what can be achieved is illustrated with the following files within the Custom Library folder:
+*   **GetCustomInstallMethodExamples.psm1** - Demonstrates how you can provide a custom Install Method information back to the correct Hashtable
+*   **CustomOverrideExample.psm1** - Demonstrates how you can
+    *   Add additional telemetry when calling the AzNableProxy GET function with a few extra lines of code
+    *   Deliver detailed telemetry on Exit or Failure with a few extra lines of code
 
 
 # Preparation
@@ -120,13 +179,14 @@ Open **PartnerConfig.xml** to begin. This **Partner Configuration** is your one-
 | | *SOAgentFileName* | WindowsAgentSetup.exe | Yes | Name of the Agent Installer supplied in the Typical *InstallFolder* - change this each time you upgrade your N-Central Server, and **be sure to use the System-Level Agent Installer** |
 | | *SOAgentVersion* | 12.0.1.118 | Yes | User-Friendly (N-Central) Version of the Agent to install on Typical systems - for verification/logging purposes |
 | | *SOAgentFileVersion* | 12.0.10118.0 | Yes | Windows Version of the Agent Installer to use on Typical systems, which should match the **File Version** property when you right-click **Properties > Details.** |
-| **Deployment (Legacy)** | *InstallFolder* | LegacyAgent | Yes | Name of the Folder used by the Package to hold relevant Installers for Legacy Agents (11.0.0.xxxx and Below) |
-| | *NETFileName* | NET4_0-Universal.exe | Yes | Name of the .NET Framework Installer supplied in the Legacy *InstallFolder* - The supplied Installer is the only version suitable for Windows XP / Server 2003 and the N-Central Agent (since .NET 4.0 is a minimum requirement of the Agent, and maximum version for XP / 2003) |
-| | *NETVersion* | 4.0 | Yes | User-Friendly Version of .NET Framework to install on Legacy systems - for verification/logging purposes |
-| | *NETFileVersion* | 4.0.30319.1 | Yes | Windows Version of the .NET Framework Installer to use on Typical systems, which should match the **File Version** property when you right-click **Properties > Details.** |
-| | *SOAgentFileName* | WindowsAgentSetup.exe | Yes | Name of the Agent Installer supplied in the Typical *InstallFolder* - The supplied Installer is the latest version suitable for Windows XP / Server 2003 - only change this if you elect to use an earlier version of the Installer |
-| | *SOAgentVersion* | 11.0.0.1114 | Yes | User-Friendly (N-Central) Version of the Agent to install on Typical systems - for verification/logging purposes |
-| | *SOAgentFileVersion* | 11.0.2114.0 | Yes | Windows Version of the Agent Installer to use on Typical systems, which should match the **File Version** property when you right-click **Properties > Details.** |
+| | *CustomerId* | null | No | The Customer ID value as found under **Administration > Customers**, typically populated via a provided AMP|
+| | *RegistrationToken* | null | No | The Registration Token value as found under **Actions > Download Agent/Probe > Get Registration Token**, typically populated via a provided AMP|
+| | *AzNableProxyUri* | null | No | The URI of the AzNableProxy function as found under the function app overview but without the leading https:// , ie. mytokenproxy.azurewebsite.net. Typically updated via a provided AMP.|
+| | *AzNableAuthCode* | null | No | The AuthCode of the AzNableProxy function as found under the **Functions > GET function > Function Keys**. Typically updated via a provided AMP.|
+
+
+
+
 
 Once you've made your adjustments, in most cases, you should be able to utilize the Configuration Values for your all your clients, but you may elect to customize them for specific environments. For example, you may wish to increase the *PingTolerance* for a Customer/Site where you know there is significant latency, and therefore Agents may have trouble reliably communicating with the N-Central Server.
 
@@ -195,7 +255,7 @@ This method is suitable for one-off Devices, or those that do not belong to a Wi
 
 Example - **DO NOT USE**
 
-**F:\DeploymentStuff\AGENT\LaunchInstaller.bat 170**
+**F:\DeploymentStuff\AGENT\LaunchInstaller.bat 170 90d3f270-c8ac-48dc-9466-0d48f2ffc339**
 
 Another use case for On-Demand Deployment may be running the **Deployment Package** for **Repair or Re-Installation purposes.**
 
@@ -224,7 +284,7 @@ This is by far, the preferred method for enterprise, or Windows Domain-managed e
 
 4 -  **Right-click and Edit** the new GPO node, then expand the following nodes in the left-hand pane: **Computer Configuration > Policies > Windows Settings > Scripts.** Open the **Startup** item on the right.
 
-5 -  Click the **Add** button, and for the Script Name box, **Browse** to **\\clientdomain.name\NETLOGON\**NetworkFolder*** and select **LaunchInstaller.bat.**
+5 -  Click the **Add** button, and for the Script Name box, **Browse** to **\\\clientdomain.name\NETLOGON\**NetworkFolder*** and select **LaunchInstaller.bat.**
 
 6 -  In N-Central, locate the Customer/Site ID for the client's Domain by reviewing either the **Administration > Customers** page at the Service Organization Level, or the **Administration > Sites** page at the Customer Level. Consider your environment before selecting the ID. In most scenarios, **you will probably want the Customer-Level ID,** since most Customers have a single Domain, or you may simply not use the Site Level in your N-Central setup. If, however, you have a **Domain or OU that is specific to only one Site,** you may opt to use that specific Site ID to have new Devices import there directly, instead of at the Customer Level.
 
@@ -444,5 +504,10 @@ Special Thanks go to the following Partners and Community Members for their cont
     *   **Deployment Package** VBScript (InstallAgent.vbs) Version - Optimization, Unified Configuration and Development of Ongoing Updates
 *   Ryan Crowther Jr of RADCOMP Technologies
     *   **Deployment Package** PowerShell (InstallAgent.ps1) Version - Initial Release
-
+*   Robby Swartenbroekx of b-inside
+    *   **Deployment Package** PowerShell/Batch changes and QA from 5.0.1 to 5.0.2
+*   Prejay Shah of Doherty    
+    *   **Deployment Package** PowerShell/Batch changes and QA from 5.0.1 to 5.0.2
+*   David Brooks of Premier Technology Solutions    
+    *   **Deployment Package** PowerShell/Batch/AMP feature updates from 5.0.1 to 5.0.2 and documentation
 *   All Partners and SolarWinds MSP Community Members who have helped and contributed ideas to this **Automation Suite**
