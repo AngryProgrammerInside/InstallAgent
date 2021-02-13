@@ -5,7 +5,7 @@
 ### INITIALIZATION FUNCTIONS
 ###############################
 
-function DebugInstallMethods {
+function DebugGetMethods {
     ### Function Body
     ###############################
     ### This function is not used during normal script operation, it is used for the validation during development
@@ -25,7 +25,7 @@ function DebugInstallMethods {
     $Install.MethodData.Keys | ForEach-Object { $key = $_; $Install.MethodData[$_] | ForEach-Object { [PSCustomObject]$_ } } | Select-Object $paramOrder | Sort-Object Key | Out-GridView
 }
 
-function DebugAppData {
+function DebugGetAppliance {
     ### Function Body
     ###############################
     ### This function is not used during normal script operation, it is used for the validation during development
@@ -2994,6 +2994,8 @@ function VerifyPrerequisites {
     SelectInstallers
     ### Check if the Script has Sufficient Info to Install the Agent
     GetInstallMethods
+    ### Before proceeding, run GetCustomInstallMethods, if a custom module is loaded it will override the empty function
+    GetCustomInstallMethods
     # Verify at least one Method is Available for Installation
     $MethodsAvailable = (
         $Install.MethodData.Keys |

@@ -580,6 +580,9 @@ $SC.Paths.Old = @{
   "EventKey"        = "HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\InstallAgent"
 }
 
+function GetCustomInstallMethods {
+# An empty function for a partner to override and update/insert custom install information
+}
 
 
 ######################################
