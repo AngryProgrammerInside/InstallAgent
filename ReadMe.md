@@ -51,7 +51,7 @@ These tools are provided as-is, in the best of faith, by those Partners and Comm
     *   Kelvin Tegelaar's AzNableProxy via an Azure Cloud function also on GitHub under [KelvinTegelaar/AzNableProxy](https://github.com/KelvinTegelaar/AzNableProxy)
     *   Last successful install configuration saved to a local file
 *   Functioning N-Central AMP scripts that support 2 methods for updating the configuration file used for installation
-    *   Direct update of Customer ID/Registration Token and other values from N-Central Custom Device Property (CDP) injected via N-Central API See: [How to N-Central API Automation](https://github.com/AngryProgrammerInside/NC-API-Documentation) for examples
+    *   Direct update of Customer ID/Registration Token and other values from N-Central Custom Property (CP) injected via N-Central API See: [How to N-Central API Automation](https://github.com/AngryProgrammerInside/NC-API-Documentation) for examples
     *   Automatic update of Customer ID/Registration token from values pulled from local Agent/Maintenance XML along with provided JWT (see above documentation)
 *   Legacy Support: If you still have old values within your GPO, you can use a flag within the LaunchInstaller.bat to ignore provided parameters and rely upon the configuration file
 *   Custom installation method data
@@ -91,8 +91,6 @@ The **InstallAgent Automation Suite** provides the following key features for de
 
 *   Live Script Status Updates and Timestamps for last actions the Script has taken via Registry
 
-*   Highly Customizable for your environment - Configure different values for Legacy vs Current Agent installations, or for each Domain you deploy to
-
 # Components
 
 The **InstallAgent Automation Suite** is comprised of several Components to aid in the deployment and facilitation of the N-Central Agent, which are listed below:
@@ -102,11 +100,6 @@ The **InstallAgent Automation Suite** is comprised of several Components to aid 
 The **Deployment Package** is suitable by itself for all deployments, and contains the following items:
 
 *   **AGENT** Folder
-    *   **AMP Config Updater** folder
-        *   **Refresh Agent from JWT-API.amp** - **AMP wrapper**, for below ps1 file that uses local agent information and a JWT token to automatically populate a PartnerConfig.xml
-        *   **Refresh Agent Token from  JWT-API.ps1** - **PS Code** for populating PartnerConfig
-        *   **Refresh Agent Token from CP.amp** - **AMP wrapper**, for below ps1 file that populates the PartnerConfig from your N-Central Customer Property
-        *   **Refresh Agent Token from CP.ps1** - **PS Code** for populating PartnerConfig from CP
     *   **CurrentAgent** Folder
         *   <sup>1</sup>**NET4_5_2-Universal.exe** - .NET Framework Installer required by Current Agents (11.0.1.xxxx and Above)
     *   **Lib** Folder
@@ -114,6 +107,15 @@ The **Deployment Package** is suitable by itself for all deployments, and contai
     *   **InstallAgent.ps1** - **Agent Setup Script,** the main/wrapper script, which contains most pre-defined constants and structures for execution
     *   **LaunchInstaller.bat** - **Agent Setup Launcher,** the launcher script, which is called On-Demand (click-to-run) or by Group Policy (calling the Launcher by either method **requires an N-Central Customer/Site ID number as a Parameter for any new Agent installations**)
     *   **PartnerConfig.xml** - **Partner Configuration,** which is used to dictate most variable options to the **Agent Setup Script**
+*   **AMP Config Updater** folder
+    *   **Refresh Agent from JWT-API.amp** - **AMP wrapper**, for below ps1 file that uses local agent information and a JWT token to automatically populate a PartnerConfig.xml
+    *   **Refresh Agent Token from  JWT-API.ps1** - **PS Code** for populating PartnerConfig
+    *   **Refresh Agent Token from CP.amp** - **AMP wrapper**, for below ps1 file that populates the PartnerConfig from your N-Central Customer Property
+    *   **Refresh Agent Token from CP.ps1** - **PS Code** for populating PartnerConfig from CP
+*   **Custom Library** folder
+    *   **CustomOverrideExample.psm1** - Example function overrides for extended Azure telemetry capability
+    *   **GetCustomInstallMethodExamples.psm1** - Example function to override or change your install method data. This function is called by default at the approriate time just prior to validation checks
+    *   **LibReadme.md** - Brief instruction on usage of above files
 
 <sup>1</sup> Download Instructions for these items are included at the designated location in order to reduce overall package size, as they are already freely available on the web
 
@@ -143,6 +145,42 @@ Examples of what can be achieved is illustrated with the following files within 
     *   Add additional telemetry when calling the AzNableProxy GET function with a few extra lines of code
     *   Deliver detailed telemetry on Exit or Failure with a few extra lines of code
 
+# Registration Token and installation preference
+Prior to the advent of the registration token you simply supplied the Customer ID and domain to the script parameters in the GPO and everything else would work.
+
+After the introduction of the requirements of the registration token, the challenge has become *how* to get the registration token to the device for both activation key and registration key type installation.
+
+The methods that have been implemented by the community include:
+*   Custom Script that takes the Customer ID and Token but requiring update of the token at the needed refresh date
+*   Variations on token lookup via N-Central API with a JWT such as [DeployTheNCAgent GitHub community script by Chris Reid](https://github.com/N-able/ScriptsAndAutomationPolicies/blob/master/DeployTheNCAgent/DeployTheNCAgent.ps1) 
+*   Token lookup by the more secure [AzNableProxy method by Kelvin Tegelaar](https://github.com/KelvinTegelaar/AzNableProxy) that hides the JWT
+*   Update of the Customer ID/Token in PartnerConfig via N-Central AMP
+
+The updates to the deployment package uses all the above methods in some manner to achieve a rate of installation success. Here is the list of installation methods available by default for upgrading or installing new agents in order:
+
+1. Activation Key : Token (Partner Config) / Appliance ID (Existing Installation)
+2. Activation Key : Token (Current Script) / Appliance ID (Existing Installation)
+3. Activation Key : Token / Appliance ID (Historical Installation)
+4. Activation Key : AzNableProxy Token / Customer ID, Appliance ID (Existing Installation)
+5. Activation Key : Customer ID (Current Script) / AzNableProxy Token / Appliance ID (Existing Installation)
+6. Site ID/Registration Token (Current Script)
+7. Customer ID / Registration Token (Partner Config)
+8. Customer ID / AzNableProxy Token (Partner Config)
+9. Customer ID / AzNableProxy Token (Current Script)
+
+If data from a source is not available the script will not attempt to install with that method data. In general the preference is PartnerConfig -> Script Parameters -> AzNableProxy. Let's go through some examples:
+
+Scenario 1: You deploy the package to your Netlogon directory, and disable the flag in the LaunchInstaller.bat to read in script parameters. AzNableProxy elements are not in the PartnerConfig.
+*   Upgrade path: It will attempt method 1 first, then fall back to 3. Failing that it will attempt method 7.
+*   New install: It will attempt method 7 with the provided CustomerID/Token, no fallback.
+
+Scenario 2: The package is deployed, same scenario as above but you have AzNableProxy deployed and the XML elements in the PartnerConfig updated.
+*   Upgrade path: It will attempt method 1, 3, 4, 5 then 7, 8
+*   New Install: It will attempt method  7 and 8.
+
+Scenario 3: The package is deployed as above. LaunchInstaller is set to read parameters. Customer ID and Registration token is provided as parameters
+*   Upgrade Path: 1 -> 9
+*   New Install: 6 -> 9
 
 # Preparation
 
@@ -235,8 +273,6 @@ In N-Central, Devices are **not automatically imported into the All Devices View
 
 4 -  Add the System-Level Agent Installer to the ***NetworkFolder\\(Typical)InstallFolder*** location
 
-5 -  If you choose to use a different Legacy Agent, perform steps 4 and 5 for the *(Legacy)* variety of each value in the **Partner Configuration,** and replace the existing Agent Installer in the ***NetworkFolder\\(Legacy)InstallFolder*** location
-
 The **Deployment Package** is now ready for On-Demand or Group Policy deployments!
 
 # Deployment
@@ -288,23 +324,38 @@ This is by far, the preferred method for enterprise, or Windows Domain-managed e
 
 6 -  In N-Central, locate the Customer/Site ID for the client's Domain by reviewing either the **Administration > Customers** page at the Service Organization Level, or the **Administration > Sites** page at the Customer Level. Consider your environment before selecting the ID. In most scenarios, **you will probably want the Customer-Level ID,** since most Customers have a single Domain, or you may simply not use the Site Level in your N-Central setup. If, however, you have a **Domain or OU that is specific to only one Site,** you may opt to use that specific Site ID to have new Devices import there directly, instead of at the Customer Level.
 
-7 -  In the **Script Parameters** box, type the 3-digit Customer/Site ID that you have selected for that client's Domain. Your entries should look similar to the screenshot below (client Domain name blocked out for privacy):
+7a - For existing deployments of Time Wiser's VBS based InstallAgent you will have typically have the domain or 'auto' variable in the. In the 5.0.1 version of the DeploymentPackage you may only have the Customer ID
+
+Rather than edit the GPO in every single GPO deployment you have you can simply edit the NoArgs variable line in the LaunchInstaller.bat
+```bat
+REM - Don't use the arguments. This way, CustomerID and Registration Token aren't taken from the arguments. This to support older GPO's, that had CustomerID and Domainname as arguments
+SET NoArgs=0
+```
+Change this flag to a value *other* than 0 and it will ignore all script parameters. Once you have your N-Central AMP in place to update the Customer ID/Registration token values.
+
+7b -  In the **Script Parameters** box, depending on how you intend to provide the registration token information to the device:
+*   Enter NO script parameters: The device will then retrieve details from the PartnerConfig or failback to the AzNableProxy depending on the context.
+*   Enter the Customer ID only: The device will use the Customer ID preferentially during certain install types
+*   Enter the Customer ID and Registration Token: The device will use the Customer ID and Registration token in highest preference when performing a new install
 
 ![](media/readme-image2.png)
 
 Congratulations! Your **Group Policy Deployment** is ready for action!
 
+
+
 ## OPTIONAL
 ## 1a - Setup the N-Central Custom Service (Version 4.xx)
-
-***ATTENTION - The Custom Service Package is no longer compatible with Deployment Package 5.0.0 and above***
-
-Another option for viewing results of the **Deployment Package** is to **Monitor the Registry updates it makes to the Device with N-Central.** You can setup the **Custom Service Package** to do exactly that! The current Version of the **Custom Service** is called **Agent Installer Script Status** in N-Central, and is compatible with the following:
+<span style="color:red">
+***ATTENTION - The Custom Service Package is no longer compatible with Deployment Package 5.0.0 and above***</span>
+<span style="color:red">
+Another option for viewing results of the **Deployment Package** is to **Monitor the Registry updates it makes to the Device with N-Central.** You can setup the **Custom Service Package** to do exactly that! The current Version of the **Custom Service** is called **Agent Installer Script Status** in N-Central, and is compatible with the following:</span>
 
 *   **InstallAgent Deployment Package 4.xx**
 *   **N-Central 9.5 SP1 and Above**
+<span style="color:red">
+For setup and configuration help, consult the appropriate SolarWinds MSP N-Central Documentation for **Importing a Custom Service.**</span>
 
-For setup and configuration help, consult the appropriate SolarWinds MSP N-Central Documentation for **Importing a Custom Service.**
 
 ## 2 - Review Deployment Package Results
 
@@ -439,7 +490,7 @@ That said, due to the complexity of the **Deployment Package,** there are severa
 | 10 | 10 | Successful Execution | None - All prerequisite Software is installed and the **Agent Setup Script** was launched successfully |
 | 11 | 11 | Execution Failed | General Failure - The Event Log will contain the details on the failure and resolution. |
 | 12 | 12 | Reboot Required | The system requires a manual reboot for prerequisite Software installation. Run the Launcher again post-boot to continue setup. |
-| 13 | 13 | OS Not Compatible | The Windows Operating System is not compatible with any Legacy or Current Agents (Windows 2000/ME and older). This **may** also occur on brand new Windows Releases, if Microsoft changes its build scheme again, as it did with Windows 10. |
+| 13 | 13 | OS Not Compatible | The Windows Operating System is not compatible with any Legacy or Current Agents (Windows Viata/2008 and older). This **may** also occur on brand new Windows Releases, if Microsoft changes its build scheme again, as it did with Windows 10. |
 
 ### Agent Setup Script Exit Codes
 
