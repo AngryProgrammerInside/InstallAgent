@@ -198,9 +198,9 @@ Open **PartnerConfig.xml** to begin. This **Partner Configuration** is your one-
 | **ServiceBehavior** | *ActionA* | RESTART | No | Windows Service Failure Actions for the Agent Services - What Windows will do when the Service fails |
 | | *ActionB* | RESTART | No | You must specify actions consecutively, for example, if *ActionC* is specified, then neither *ActionA* nor *ActionB* can be empty. |
 | | *ActionC* | RESTART | No | |
-| | *DelayA* | RESTART | No | Windows Service Failure Delays (in seconds) for the Agent Services - How long Windows will wait before taking each Action |
-| | *DelayB* | RESTART | No | You must specify delays consecutively, for example, if *DelayC* is specified, then neither *DelayA* nor *DelayB* can be empty. |
-| | *DelayC* | RESTART | No | Each Action should have a corresponding Delay, but if an Action is left blank, **the corresponding Delay value will be ignored.** |
+| | *DelayA* | 120 | No | Windows Service Failure Delays (in seconds) for the Agent Services - How long Windows will wait before taking each Action - Between 0 and 3600 seconds |
+| | *DelayB* | 120 | No | You must specify delays consecutively, for example, if *DelayC* is specified, then neither *DelayA* nor *DelayB* can be empty. |
+| | *DelayC* | 120 | No | Each Action should have a corresponding Delay, but if an Action is left blank, **the corresponding Delay value will be ignored.** |
 | | *Command* |  | No | Command to execute for each **RUN** Action specified. **Use the absolute path to the Command to ensure your Command will run when and how you expect.** |
 | | *Reset* | 1440 | No | Windows Service Failure Reset Period (in minutes) for the Agent Services - How long until Windows re-attempts the Failure Actions |
 | | *Startup* | Auto | Yes | Desired Startup Type for the Agent Services |
