@@ -557,7 +557,7 @@ Special Thanks go to the following Partners and Community Members for their cont
 *   Ryan Crowther Jr of RADCOMP Technologies
     *   **Deployment Package** PowerShell (InstallAgent.ps1) Version - Initial Release
 *   Robby Swartenbroekx of b-inside
-    *   **Deployment Package** PowerShell/Batch changes and QA from 5.0.1 to 5.0.2
+    *   **Deployment Package** PowerShell/Batch/AMP changes and QA from 5.0.1 to 5.0.2
 *   Prejay Shah of Doherty    
     *   **Deployment Package** PowerShell/Batch changes and QA from 5.0.1 to 5.0.2
 *   David Brooks of Premier Technology Solutions    
