@@ -2699,7 +2699,7 @@ function GetInstallMethods {
                 $false
             }
             elseif (!$Config.IsAzNableAvailable -and $SC.InstallMethods.UsesAzProxy.(AlphaValue $i)) {
-                # If AzNableProxy configation isn't available and method uses it...
+                # If AzNableProxy configuration isn't available and method uses it...
                 $false
             }
             elseif ($Config.IsAzNableAvailable -and $SC.InstallMethods.Type.(AlphaValue $i) -eq $SC.InstallMethods.InstallTypes.B -and $Agent.Health.Installed -eq $false) {
