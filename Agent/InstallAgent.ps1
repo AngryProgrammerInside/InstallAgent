@@ -6,7 +6,7 @@
 ########## Change Log ##########
 ################################
 
-### 5.0.2 on 2021-02-01 - David Brooks
+### 6.0.0 on 2021-02-01 - David Brooks
 ##################################################################
 # - Added various token registration method and agent activation methods
 # - -Activation Key : Token (Partner Config) / Appliance ID (Existing Installation)
