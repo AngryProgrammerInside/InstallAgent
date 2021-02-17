@@ -33,7 +33,7 @@ Another function available is **DebugGetProxyTokens**, this is used to resolve a
 <span >
 
 ## Discuss important functions 
-## GetInstallMethods function
+### GetInstallMethods function
 The GetInstallMethods function is the key method through in which validated installation data from the different sources is checked one last time before it is populated into the $Install.MethodData Hashtable
 
 The first important part of this function is here:
@@ -159,7 +159,7 @@ This should be more familiar to us now, if the AzNableProxy information is in th
 
 Is found to be of type `B` or the "Activation Key: AzNableProxy->Token/AppId" type and the Agent is not installed; then we set `Available` as `$false`
 
-Or in short, don't make the AzNableProxy type Activation Key install types available if there is no agent to upgrade.
+Or in short, don't make the AzNableProxy type Activation Key install methods available if there is no agent to upgrade.
 
 **Finally:**
 ```powershell
@@ -176,3 +176,184 @@ The first thing we should note here is this is an `else`, not an `elseif` so we'
 ## Discussion about Custom Modules
 ## Debug Commands and what they do
 ## Appendices: Detail on example tables of importance
+### $Config
+The `$Config` table is the variable to which the values of the **PartnerConfig.xml** is assigned, this is a 1:1 mapping of the Keys and Values.
+
+|Key|Value|
+| :- | :- |
+|NCServerAddress|ncentral.mymsp.com|
+|ServiceQueryString|Auto|
+|AgentFile|WindowsAgentSetup.exe|
+|NETFile|NET4\_5\_2-Universal.exe|
+|AzNableAuthCode|c2hvcnRlbmVkIGZvciB0aGlzIGRvY3VtZW50 |
+|ErrorContactInfo|My MSP information call 1800 123 456|
+|AgentVersion|2020.1.5.425|
+|PingTolerance|20|
+|LocalFolder|C:\Windows\Security ThroughObscurity|
+|ServiceStartup|Automatic|
+|ServiceRepairString|Auto|
+|ActivationKey|c2hvcnRlbmVkIGZvciB0aGlzIGRvY3VtZW50 |
+|ServiceDelayA|0|
+|NETVersion|4.5.2.0|
+|NetworkFolder|Agent|
+|ServiceDelayC|0|
+|ServiceCommand||
+|ServiceReset|86400|
+|ServiceActionB|RESTART|
+|CustomerId|364|
+|InstallFolder|CurrentAgent|
+|NETFileVersion|4.5.51209.34209|
+|RegistrationToken|f01ebde4-9cd2-46a1-9e5b-a41961c9c43b|
+|AgentFileVersion|2020.1.50425.0|
+|AzNableProxyUri|myazproxy.azurewebsites.net|
+|PingCount|20|
+|ServiceDelayB|120000|
+|BootTimeWaitPeriod|0|
+|ProxyString||
+|ServiceRequireDelay|FALSE|
+|ServiceActionA|RESTART|
+|IsAzNableAvailable|TRUE|
+|InstallTimeoutPeriod|5|
+|ServiceActionC|RESTART|
+
+### $Script
+
+The `$Script` hashtable is the root table for several other sub-hashtables such as the results, sequence and path, the more important vales here are `CustomerID` and `ActivationKey` that are passed through to the Method Data
+
+|Name|Value|
+| :- | :- |
+|Sequence|{Status, Order}|
+|Results|{LauncherSource, ScriptSource, ScriptEventKey, ScriptInstallKey...}|
+|RegistrationToken|f01ebde4-9cd2-46a1-9e5b-a41961c9c43b|
+|Execution|{ScriptLastRan, ScriptAction, ScriptMode, ScriptVersion...}|
+|CustomerID|123|
+|Path|{InstallDrop, Library, TempFolder, PartnerFile}|
+|ActivationKey|c2hvcnRlbmVkIGZvciB0aGlzIGRvY3VtZW50|
+|Parameters|{[CustomerID, 123], [RegistrationToken, {GUID}],[LauncherPath,C:\temp\], [DebugMode, True]}|
+|Invocation|C:\temp\InstallAgent.ps1|
+
+### $Device
+The `$Device` stores the results of the `GetDeviceInfo` function, these values are retrieved early on to help identify the location of the agent, the .NET version and if that needs to updated prior to proceeding. It's at this stage we can also quit out if there is something about this version of Windows that is not compatible. As older OS's like Windows 8/8.1 and 2012 R2 are phased out the values can be used to exit before attempting install.
+
+|Key|Example Values|
+| :- | :- |
+|PF|C:\Program Files|
+|ServerCore|FALSE|
+|Name|MY-REAL-PC|
+|IsSRV|FALSE|
+|OSBuild|10.0.18363|
+|Architecture|64-bit|
+|IsBDC|FALSE|
+|LastBootTime|12/02/2021 14:42|
+|FQDN|WORKGROUP|
+|IsWKST|TRUE|
+|IsDC|FALSE|
+|NETProduct|4.8.0.0|
+|Hostname|MY-REAL-PC|
+|NETDisplayProduct|4.8.0.0|
+|OSName|Microsoft Windows 10 Enterprise|
+|PF32|C:\Program Files (x86)|
+|NETVersion|4.8.4084.0|
+|PSVersion|5.1.19041.610|
+|Role|Standalone Workstation|
+|IsDomainJoined|FALSE|
+<br>
+### $Install
+The `$Install` has a number of sub-hashtables, noteable of which is the MethodData table covered previously that can be viewed with the `DebugGetMethods` function.
+
+Other important values include the `ChosenMethod` hashtable, this table holds the 'current' MethodData table that is being processed in the `InstallAgent` function as it loops through the different methods; useful when debugging inside the `InstallAgent` function and you need to determine what method is currently being attempted.
+
+$Install.RequiredAction is useful to interrogate to determine what the final action type was determined by the script prior to install being called.
+
+Finally the `$Install.ChosenAgent.InstallPath` (below) along with the `$Install.AgentString` are called in the:
+
+```$Proc = [System.Diagnostics.Process]::Start($INST)``` 
+
+Line to actually run setup with the given parameters for that Install type.
+
+|Name|Example Values|
+| :- | :- |
+|Results|{SelectedNETKit, SelectedAgentKit}|
+|MethodResults|{E, D, J, F...}|
+|ChosenNET|{Path, Version, FileName, InstallPath}|
+|Sources|{ChosenNET, Demand, ChosenAgent, Network}|
+|NETLOGONAccess|FALSE|
+|ChosenAgent|{Path, Version, FileName, InstallPath}|
+|MethodData|{E, D, G, F...}|
+|RequiredAction|Upgrade Existing|
+|NCServerAccess|TRUE|
+|ChosenMethod|{Parameter, FailedAttempts, Type, Method...}|
+|AgentString|/S /V" /qn AGENTACTIVATIONKEY=c2hvcnRlbmVkIGZvciB0aGlzIGRvY3VtZW50"|
+<br>
+#### $Agent.ChosenAgent.InstallPath
+|Name|Example Values|
+| :- | :- |
+|Path|\\\mydomain.local\netlogon\Agent\CurrentAgent\WindowsAgentSetup.exe|
+|Version|2020.1.50425.0|
+|FileName|WindowsAgentSetup.exe|
+|InstallPath|C:\Windows\Temp\AGPO\Fetch\WindowsAgentSetup.exe|
+<br>
+### $Agent
+The `$Agent` table is provides an abundance of information about the Agent, it's current state or lack thereof, current processes etc.
+* Appliance: Contains information merged from the ApplianceConfig.xml and ServerConfig.xml
+* Path: Provides paths to configuration files and registry locations
+* Processes: Provides information on running agent processes, needed when terminating them prior to upgrades etc.
+* History: The values inside the History file, note that the History file is an XML output of the `$Agent.Appliance` when the agent is successfully installed/upgraded
+* Services: Contains information on the Windows Services for the Agent/Maintenance
+* Registry: Contains all the information from the registry uninstall key for the Agent
+* DecodedActivationKey: Constructed during the Agent Diagnosis processes, what the Activation Key looks like prior to being encoded to base64.
+* Docs: linked to the `[xml]` and registry key objects retrieved in the `DiagnoseAgent` function, these are the raw items before they are parsed, validated and populated into the above hashtables
+
+
+|Name|Example Values|
+| :- | :- |
+|Appliance|{ID, WindowsVersion, Version, SiteID...}|
+|Path|{Registry, ServerConfigBackup, Checker, ApplianceConfig...}|
+|Processes|{Windows Agent Service, Windows Agent Maintenance Service}|
+|History|{ID, WindowsVersion, SiteID, AssignedServer...}|
+|HealthOptional|{}|
+|Services|{Failure, Data}|
+|Health|{ProcessesExist, AgentStatus, Installed, ApplianceIDValid...}|
+|Registry|{UninstallString, InstallLocation, DisplayVersion, InstallDate}|
+|DecodedActivationKey|HTTPS://nc.mymsp.com:443\|1234567890\|1\|f01ebde4-9cd2-46a1-9e5b-a41961c9c43b\|0\|
+|Docs|{Checker.log, Registry, ApplianceConfig.xml, AgentHistory.xml...}|
+<br>
+#### $Agent.Appliance
+
+|Key|Example Values|
+| :- | :- |
+|ID|1424021110|
+|WindowsVersion|2020.1.1202.0|
+|Version|2020.1.0.202|
+|SiteID|364|
+|AssignedServer|ncentral.mymsp.com|
+|LastInstall|16/02/2021 22:20|
+|ActivationKey|c2hvcnRlbmVkIGZvciB0aGlzIGRvY3VtZW50|
+<br>
+#### $Agent.Path
+
+|Key|Example Values|
+| :- | :- |
+|Registry|HKLM:\Software\...\Uninstall\{3B3CE3D0-96E7-498F-8BFD-3D5511C07012}|
+|ServerConfigBackup|C:\Program Files (x86)\N-Able Technologies\Windows Agent\config\ServerConfig.xml.backup|
+|Checker|C:\Program Files (x86)\N-Able Technologies\Windows Agent\bin\Checker.log|
+|ApplianceConfig|C:\Program Files (x86)\N-Able Technologies\Windows Agent\config\ApplianceConfig.xml|
+|ApplianceConfigBackup|C:\Program Files (x86)\N-Able Technologies\Windows Agent\config\ApplianceConfig.xml.backup|
+|ServerConfig|C:\Program Files (x86)\N-Able Technologies\Windows Agent\config\ServerConfig.xml|
+|History|C:\Windows\SecurityObscurity\Agent\AgentHistory.xml|
+<br>
+#### $Agent.Health
+
+|Key|Example Values|
+| :- | :- |
+|ProcessesExist|TRUE|
+|AgentStatus|Disabled|
+|Installed|TRUE|
+|ApplianceIDValid|TRUE|
+|ServicesRunning|FALSE|
+|ServicesBehaviorCorrect|FALSE|
+|ServicesExist|TRUE|
+|AssignedToPartnerServer|TRUE|
+|ProcessesRunning|FALSE|
+|VersionCorrect|FALSE|
+|ServicesStartupCorrect|FALSE|
