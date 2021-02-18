@@ -187,9 +187,5 @@ RD /S /Q "%TempFolder%" 2>NUL
 :Done
 ECHO == Launcher Finished ==
 ECHO Exiting...
-IF %LegacyWait% EQU 1 (
-  PING 192.0.2.1 -n 10 -w 1000 >NUL
-) ELSE (
-  TIMEOUT /T 10
-)
+PING 192.0.2.1 -n 10 -w 1000 >NUL
 EXIT 10
