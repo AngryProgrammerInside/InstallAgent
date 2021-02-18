@@ -79,6 +79,7 @@ IF "%OSBuild:~0,2%" EQU "6." (
   IF %OSBuild:~2,1% GTR 0 (GOTO LaunchScript)
 )
 REM - Windows Vista and Server 2008
+SET LegacyWait=0
 IF "%OSBuild:~0,3%" EQU "6.0" (SET LegacyWait=1)
 REM - Windows XP x64 and Server 2003
 IF "%OSBuild:~0,3%" EQU "5.2" (GOTO QuitIncompatible)
@@ -140,17 +141,29 @@ IF %ERRORLEVEL% EQU 0 (
 :CUSTOMERANDTOKEN
 ECHO Running with customer and token
 START "" %WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -WindowStyle Hidden -File "%TempFolder%\InstallAgent.ps1" -CustomerID %CustomerID% -RegistrationToken %RegistrationToken% -LauncherPath "%DeployFolder%
-GOTO QuitSuccess
+IF %ERRORLEVEL% EQU 0 (
+  GOTO QuitSuccess
+) ELSE (
+  GOTO QuitFailure
+)
 
 :CUSTOMERIDONLY
 ECHO Running with Customer ID Only
 START "" %WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -WindowStyle Hidden -File "%TempFolder%\InstallAgent.ps1" -CustomerID %CustomerID% -LauncherPath "%DeployFolder%
-GOTO QuitSuccess
+IF %ERRORLEVEL% EQU 0 (
+  GOTO QuitSuccess
+) ELSE (
+  GOTO QuitFailure
+)
 
 :PARTNERCONFIG
 ECHO Using Partner config
 START "" %WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -WindowStyle Hidden -File "%TempFolder%\InstallAgent.ps1" -LauncherPath "%DeployFolder%
-GOTO QuitSuccess
+IF %ERRORLEVEL% EQU 0 (
+  GOTO QuitSuccess
+) ELSE (
+  GOTO QuitFailure
+)
 
 :QuitIncompatible
 ECHO X  OS Not Compatible with either the Agent or the %SetupScript%
@@ -165,6 +178,7 @@ GOTO Cleanup
 
 :QuitSuccess
 ECHO O  %SetupScript% Launched Successfully
+EVENTCREATE /T ERROR /ID 10 /L APPLICATION /SO "%LauncherScript%" /D "Agent Setup Launcher successful" >NUL
 GOTO Done
 
 :Cleanup
@@ -173,8 +187,5 @@ RD /S /Q "%TempFolder%" 2>NUL
 :Done
 ECHO == Launcher Finished ==
 ECHO Exiting...
-IF %LegacyWait% EQU 1 (
-  PING 192.0.2.1 -n 10 -w 1000 >NUL
-) ELSE (
-  TIMEOUT /T 10
-)
+PING 192.0.2.1 -n 10 -w 1000 >NUL
+EXIT 10
