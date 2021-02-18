@@ -155,7 +155,7 @@ Security is at the forefront of everyone's mind when looking at automated deploy
 
 *   **Refresh Agent Token from CP** - In this method you populate would likely populate Custom Properties with a custom script from a device that is located inside the perimeter network that is secured with 2FA. Treat the JWT as you would any username/password with the principal of least privelage.
 
-*   **RequestAzWebProxyToken() function** - This method's JWT is secured inside of a function configuration file `local.settings.json` in an Azure subscription, accessed by accounts that should be secured by 2FA. Microsoft's Azure function are secure by design, and their security meets many international standards.
+*   **RequestAzWebProxyToken() function** - This method's JWT is secured inside of a function configuration file `local.settings.json` in an Azure subscription, accessed by accounts that should be secured by 2FA. Microsoft's Azure function are secure by design, and their security meets many international standards. If you have compliance requirements, store the token in a [Key Vault](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references).
 
 # Components
 
