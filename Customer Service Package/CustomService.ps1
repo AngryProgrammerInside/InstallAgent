@@ -28,4 +28,4 @@ $ScriptLastRan = $InstallAgentResults.ScriptLastRan
 $ScriptMode = $InstallAgentResults.ScriptMode
 $ScriptResult = $InstallAgentResults.ScriptResult
 $ScriptSequence = $InstallAgentResults.ScriptSequence
-$ScriptVersion = $InstallAgentResults.ScriptVersion
+$ScriptVersion = [int]$InstallAgentResults.ScriptVersion.Replace('.','')

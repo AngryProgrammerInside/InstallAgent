@@ -631,4 +631,6 @@ Special Thanks go to the following Partners and Community Members for their cont
     *   **Deployment Package** PowerShell/Batch changes and QA from 5.0.1 to 6.0.0
 *   David Brooks of Premier Technology Solutions    
     *   **Deployment Package** PowerShell/Batch/AMP feature updates from 5.0.1 to 6.0.0 and documentation
+*   Kelvin Tegelaar of Lime Networks 
+    *   **AzNableProxy** Created and updated the AzNableProxy service for Azure used in this package
 *   All Partners and SolarWinds MSP Community Members who have helped and contributed ideas to this **Automation Suite**
