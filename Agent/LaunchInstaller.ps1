@@ -11,9 +11,9 @@ $RegistrationToken = $args[1]
 Write-Host "Monitor switch is present: $($Monitor.IsPresent)"
 
 # - Launcher Script Name
-$LauncherScript = "Agent Setup Launcher"
+$LauncherScript = "Agent Setup PS Launcher"
 # - Setup Script Name
-$SetupScript = "Agent Setup Script"
+$SetupScript = "Agent Setup PS Script"
 if (-not [System.Diagnostics.EventLog]::SourceExists($LauncherScript)) {
     New-EventLog -Source $LauncherScript -LogName Application
 }
@@ -92,6 +92,8 @@ while (-not $p.HasExited) {
             Write-Host "Progress: " -ForegroundColor Green -NoNewline
             Get-ItemProperty $RegPaths.Summary | Select-Object * -ExcludeProperty PS* | Format-List *
         }
+    } else {
+        Start-Sleep 10
     }
 }
 if ($p.ExitCode -eq 0) {
