@@ -1,15 +1,23 @@
 # InstallAgent Automation Suite
 
 ## Table of Contents
-
 - [InstallAgent Automation Suite](#installagent-automation-suite)
-  * [New and improved Features since AgentDeploymentPackage](#new-and-improved-features-since-agentdeploymentpackage)
+  * [Table of Contents](#table-of-contents)
+  * [Introduction](#introduction)
+  * [New and improved Features since AgentDeploymentPackage in 6.0.0](#new-and-improved-features-since-agentdeploymentpackage-in-600)
   * [Key Features](#key-features)
+- [The "Registration Token" - Agent Deployment and Considerations](#the--registration-token----agent-deployment-and-considerations)
+  * [History](#history)
+  * [Overview](#overview)
+  * [Automation of token deployment](#automation-of-token-deployment)
+  * [Security](#security)
 - [Components](#components)
   * [Deployment Package](#deployment-package)
   * [AMP-Based Custom Service Package](#amp-based-custom-service-package)
+  * [Custom PowerShell modules](#custom-powershell-modules)
+- [Registration Token and installation preference](#registration-token-and-installation-preference)
 - [Preparation](#preparation)
-  * [1 - Update the Partner Configuration](#1---update-the-partner-configuration)
+  * [1 - Updating the Partner Configuration](#1---updating-the-partner-configuration)
   * [2 - Configure N-Central for Automatic Device Import](#2---configure-n-central-for-automatic-device-import)
   * [3 - Setup a Deployment Package](#3---setup-a-deployment-package)
 - [Deployment](#deployment)
@@ -17,7 +25,11 @@
     + [On-Demand Deployment](#on-demand-deployment)
     + [Group Policy Deployment](#group-policy-deployment)
   * [OPTIONAL](#optional)
-  * [1a - Setup the N-Central Custom Service (Version 4.xx)](#1a---setup-the-n-central-custom-service--version-4xx-)
+  * [1a - Setup the N-Central Custom Service (Version 6.xx)](#1a---setup-the-n-central-custom-service--version-6xx-)
+  * [1b - Setup AMP based PartnerConfiguration update amps](#1b---setup-amp-based-partnerconfiguration-update-amps)
+  * [1c - Setup AMP based PartnerConfiguration update amps](#1c---setup-amp-based-partnerconfiguration-update-amps)
+    + [Update PartnerConfig from CP](#update-partnerconfig-from-cp)
+    + [Update PartnerConfig from JWT](#update-partnerconfig-from-jwt)
   * [2 - Review Deployment Package Results](#2---review-deployment-package-results)
     + [Windows Event Log](#windows-event-log)
     + [Windows Registry](#windows-registry)
@@ -33,6 +45,8 @@
 - [Routine Updates](#routine-updates)
 - [Credits](#credits)
 
+## Introduction
+
 This is a community-based Automation Suite intended as a replacement for the stock N-central Group Policy Installer Script as provided by N-able. It is not supported by SolarWinds MSP or N-able, so please do not contact their support department regarding any problems or questions about this script. In addition, please do not contact the support departments of any individual Partners in the SolarWinds MSP Community regarding the Automation Suite or its components.
 
 This script is a fork of Ryan Crowther Jr's AgentDeploymentPackage on GitHub [](https://github.com/N-able/AgentDeploymentPackage/)
@@ -41,7 +55,7 @@ If you discover a problem with any component of the Automation Suite or have ide
 
 These tools are provided as-is, in the best of faith, by those Partners and Community Members involved in their development. If you use this in your environment, we would love to hear from you on GitHub!
 
-## New and improved Features since AgentDeploymentPackage 5.0.1
+## New and improved Features since AgentDeploymentPackage in 6.0.0
 ![](media/readme-image8.png)
 *   Registration token install method:
     *   Activation Key methods for upgrades
