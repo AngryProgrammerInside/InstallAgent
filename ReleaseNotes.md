@@ -1,5 +1,4 @@
 # 2020-02-xx
-New and updated features:
 *   Registration token install method:
     *   Activation Key methods for upgrades
     *   Registration Key methods for new installs/repairs
@@ -11,6 +10,7 @@ New and updated features:
 *   Functioning N-Central AMP scripts that support 2 methods for updating the configuration file used for installation
     *   Direct update of Customer ID/Registration Token and other values from N-Central Custom Property (CP) injected via N-Central API See: [How to N-Central API Automation](https://github.com/AngryProgrammerInside/NC-API-Documentation) for examples
     *   Automatic update of Customer ID/Registration token from values pulled from local Agent/Maintenance XML along with provided JWT (see above documentation)
+*   Functioning N-Central AMP script to update/renew expired/expiring tokens
 *   Legacy Support: If you still have old values within your GPO, you can use a flag within the LaunchInstaller.bat to ignore provided parameters and rely upon the configuration file
 *   Custom installation method data
     *   Through additional modules you can use your own source for CustomerID/Registration Token enumeration
@@ -21,7 +21,7 @@ New and updated features:
 *   Quality of Life for development and debugging:
     *   Added debugmode to the InstallAgent.ps1 to avoid self destruct and reload of modules
     *   Added debug function to provide Gridviews of common tables
-    *   For more details on development debugging of this script, [check out this readme](DevelopmentAndDebugging.md)
+    *   For more details on development debugging of this script, check out this page on GitHub
 
 # 2019-08-26
 

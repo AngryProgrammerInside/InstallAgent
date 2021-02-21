@@ -254,11 +254,13 @@ Scenario 3: The package is deployed as above. LaunchInstaller is set to read par
 
 # Preparation
 
-## 1 - Update the Partner Configuration
+## 1 - Updating the Partner Configuration
 
 **The developers recommend editing the Partner Configuration (PartnerConfig.xml) with Visual Studio Code, however feel free to use your favorite text editor that supports "UTF-8 w/ BOM" Encoding.**
 
 Open **PartnerConfig.xml** to begin. This **Partner Configuration** is your one-stop shop for configuring the **Deployment Package.** Enter data for each value between the relevant XML Tags (many values are already assigned Defaults to serve as an example). Information about the Expected Format and Purpose of each Configuration Value is contained above each value itself. Consider the table below a desk reference.
+
+In normal circumstances you would configure values like Service Behavior and Script Behavior, then the rest will be updated/injected via the provided AMPs.
 
 | Category | Value Name | Default Value | Mandatory | Purpose |
 | -------- | ---------- | ------------- | --------- | ------- |
@@ -299,7 +301,6 @@ A small amount of customization can also be made in the **Agent Launcher Script*
 | Value Name | Default Value | Mandatory | Purpose |
 | ---------- | ------------- | --------- | ------- |
 | *TempFolder* | C:\Windows\Temp\AGPO | Yes | This should be a Local Folder on the system where the **Deployment Package** components work from, **NOT to be confused with the *LocalFolder* value in the Partner Configuration.** Whether run by Group Policy or On-Demand (click-to-run), the required components are dropped here during execution and then **removed upon termination of the Package.** |
-| *DLThreshold* | 3 | Yes | This is the maximum number of attempts the **Agent Setup Launcher** will make to download any prerequisite components needed for Agent installation. If this value is exceeded, the **Launcher will terminate, and it must be run again.** |
 | *NoArgs* | 0 | Yes | Disable the usage of arguments passed to this script. This way you can **not** pass CustomerID and Token through arguments, but if you have an older GPO that still uses a domainname or the term AUTO, you can set this value to 1. This way you don't need to change all those GPO's. **If set to 1, you do need another way to pass CustomerID and Token, or through the PartnerConfig.xml, or through azNableProxy** |
 
 If you elect to make any changes, you will need to adjust the values **immediately following the equals (=) sign** in their relevant **SET** statements. For example:
