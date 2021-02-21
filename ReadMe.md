@@ -55,7 +55,7 @@ If you discover a problem with any component of the Automation Suite or have ide
 
 These tools are provided as-is, in the best of faith, by those Partners and Community Members involved in their development. If you use this in your environment, we would love to hear from you on GitHub!
 
-## New and improved Features since AgentDeploymentPackage in 6.0.0
+## New and improved Features in AgentDeploymentPackage 6.0.0
 ![](media/readme-image8.png)
 *   Registration token install method:
     *   Activation Key methods for upgrades
