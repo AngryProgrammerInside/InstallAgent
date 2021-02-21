@@ -1,15 +1,23 @@
 # InstallAgent Automation Suite
 
 ## Table of Contents
-
 - [InstallAgent Automation Suite](#installagent-automation-suite)
-  * [New and improved Features since AgentDeploymentPackage](#new-and-improved-features-since-agentdeploymentpackage)
+  * [Table of Contents](#table-of-contents)
+  * [Introduction](#introduction)
+  * [New and improved Features since AgentDeploymentPackage in 6.0.0](#new-and-improved-features-since-agentdeploymentpackage-in-600)
   * [Key Features](#key-features)
+- [The "Registration Token" - Agent Deployment and Considerations](#the--registration-token----agent-deployment-and-considerations)
+  * [History](#history)
+  * [Overview](#overview)
+  * [Automation of token deployment](#automation-of-token-deployment)
+  * [Security](#security)
 - [Components](#components)
   * [Deployment Package](#deployment-package)
   * [AMP-Based Custom Service Package](#amp-based-custom-service-package)
+  * [Custom PowerShell modules](#custom-powershell-modules)
+- [Registration Token and installation preference](#registration-token-and-installation-preference)
 - [Preparation](#preparation)
-  * [1 - Update the Partner Configuration](#1---update-the-partner-configuration)
+  * [1 - Updating the Partner Configuration](#1---updating-the-partner-configuration)
   * [2 - Configure N-Central for Automatic Device Import](#2---configure-n-central-for-automatic-device-import)
   * [3 - Setup a Deployment Package](#3---setup-a-deployment-package)
 - [Deployment](#deployment)
@@ -17,7 +25,11 @@
     + [On-Demand Deployment](#on-demand-deployment)
     + [Group Policy Deployment](#group-policy-deployment)
   * [OPTIONAL](#optional)
-  * [1a - Setup the N-Central Custom Service (Version 4.xx)](#1a---setup-the-n-central-custom-service--version-4xx-)
+  * [1a - Setup the N-Central Custom Service (Version 6.xx)](#1a---setup-the-n-central-custom-service--version-6xx-)
+  * [1b - Setup AMP based PartnerConfiguration update amps](#1b---setup-amp-based-partnerconfiguration-update-amps)
+  * [1c - Setup AMP based PartnerConfiguration update amps](#1c---setup-amp-based-partnerconfiguration-update-amps)
+    + [Update PartnerConfig from CP](#update-partnerconfig-from-cp)
+    + [Update PartnerConfig from JWT](#update-partnerconfig-from-jwt)
   * [2 - Review Deployment Package Results](#2---review-deployment-package-results)
     + [Windows Event Log](#windows-event-log)
     + [Windows Registry](#windows-registry)
@@ -33,6 +45,8 @@
 - [Routine Updates](#routine-updates)
 - [Credits](#credits)
 
+## Introduction
+
 This is a community-based Automation Suite intended as a replacement for the stock N-central Group Policy Installer Script as provided by N-able. It is not supported by SolarWinds MSP or N-able, so please do not contact their support department regarding any problems or questions about this script. In addition, please do not contact the support departments of any individual Partners in the SolarWinds MSP Community regarding the Automation Suite or its components.
 
 This script is a fork of Ryan Crowther Jr's AgentDeploymentPackage on GitHub [](https://github.com/N-able/AgentDeploymentPackage/)
@@ -41,7 +55,7 @@ If you discover a problem with any component of the Automation Suite or have ide
 
 These tools are provided as-is, in the best of faith, by those Partners and Community Members involved in their development. If you use this in your environment, we would love to hear from you on GitHub!
 
-## New and improved Features since AgentDeploymentPackage 5.0.1
+## New and improved Features since AgentDeploymentPackage in 6.0.0
 ![](media/readme-image8.png)
 *   Registration token install method:
     *   Activation Key methods for upgrades
@@ -54,6 +68,7 @@ These tools are provided as-is, in the best of faith, by those Partners and Comm
 *   Functioning N-Central AMP scripts that support 2 methods for updating the configuration file used for installation
     *   Direct update of Customer ID/Registration Token and other values from N-Central Custom Property (CP) injected via N-Central API See: [How to N-Central API Automation](https://github.com/AngryProgrammerInside/NC-API-Documentation) for examples
     *   Automatic update of Customer ID/Registration token from values pulled from local Agent/Maintenance XML along with provided JWT (see above documentation)
+*   Functioning N-Central AMP script to update/renew expired/expiring tokens
 *   Legacy Support: If you still have old values within your GPO, you can use a flag within the LaunchInstaller.bat to ignore provided parameters and rely upon the configuration file
 *   Custom installation method data
     *   Through additional modules you can use your own source for CustomerID/Registration Token enumeration
@@ -174,18 +189,18 @@ The **Deployment Package** is suitable by itself for all deployments, and contai
     *   **InstallAgent.ps1** - **Agent Setup Script,** the main/wrapper script, which contains most pre-defined constants and structures for execution
     *   **LaunchInstaller.bat** - **Agent Setup Launcher,** the launcher script, which is called On-Demand (click-to-run) or by Group Policy (calling the Launcher by either method **requires an N-Central Customer/Site ID number as a Parameter for any new Agent installations**)
     *   **PartnerConfig.xml** - **Partner Configuration,** which is used to dictate most variable options to the **Agent Setup Script**
-*   **AMP Config Updater** folder
-    *   **Refresh Agent from JWT-API.amp** - **AMP wrapper**, for below ps1 file that uses local agent information and a JWT token to automatically populate a PartnerConfig.xml
-    *   **Refresh Agent Token from  JWT-API.ps1** - **PS Code** for populating PartnerConfig
-    *   **Refresh Agent Token from CP.amp** - **AMP wrapper**, for below ps1 file that populates the PartnerConfig from your N-Central Customer Property
-    *   **Refresh Agent Token from CP.ps1** - **PS Code** for populating PartnerConfig from CP
+*   **AMPs** folder
+    *   **Refresh Agent Token.amp** - AMP wrapper for below token refresh/update PS1 file
+    *   **Refresh Agent Token.ps1** - Core code for refreshing/updating tokens inside of N-Central without human interaction
+    *   **Update PartnerConfig from JWT-API.amp** - **AMP wrapper**, for below ps1 file that uses local agent information and a JWT token to automatically populate a PartnerConfig.xml
+    *   **Update PartnerConfig from JWT-API.ps1** - **PS Code** for populating PartnerConfig
+    *   **Update PartnerConfig from CP.amp** - **AMP wrapper**, for below ps1 file that populates the PartnerConfig from your N-Central Customer Property
+    *   **Update PartnerConfig from CP.ps1** - **PS Code** for populating PartnerConfig from CP
 *   **Custom Library** folder
     *   **CustomOverrideExample.psm1** - Example function overrides for extended Azure telemetry capability
     *   **GetCustomInstallMethodExamples.psm1** - Example function to override or change your install method data. This function is called by default at the approriate time just prior to validation checks
     *   **LibReadme.md** - Brief instruction on usage of above files
-*   **Custom Service Package** folder
-    *   **CustomService.ps1** Core logic for the custom service AMP file
-    *   **Agent Installer v6.amp** Wrapper for the CustomService to upload into N-Central
+
 
 <sup>1</sup> Download Instructions for these items are included at the designated location in order to reduce overall package size, as they are already freely available on the web
 
@@ -193,14 +208,13 @@ The **Deployment Package** is suitable by itself for all deployments, and contai
 
 The **Custom Service Package** is an optional download available with the **Deployment Package,** which integrates with N-Central to collect and monitor information about the most recent run of the **Deployment Package.**
 
-***ATTENTION - The Custom Service Package is no longer compatible with Deployment Package 5.0.0 and above***
-
 The **Custom Service Package** contains the following items:
 
-*   **CustomService** Folder - Not required for any other Packages
-    *   **InstallAgent status.amp** - Automation Policy run by the Custom Service
-    *   **InstallAgent status - Tim Wiser.amp** - Automation Policy run by the Custom Service, for **Deployment Packages** still using Tim's Registry key (4.01 and Below)
-    *   **Agent Installer Script Status.xml** - Custom Service Configuration file
+*   **Custom Service Package** Folder - Not required for any other Packages
+    *   **Agent Installer v6.amp** - Automation Policy run by the Custom Service
+    *   **Custom Service.ps1** - Core logic of the above AMP file
+    *   **Agent Installer.xml** - The custom service file that you can import into N-Central
+
 
 ## Custom PowerShell modules
 The default InstallAgent-Core.psm1 module provides the default behaviors, and now includes AzNableProxy token lookup by default.
@@ -254,11 +268,13 @@ Scenario 3: The package is deployed as above. LaunchInstaller is set to read par
 
 # Preparation
 
-## 1 - Update the Partner Configuration
+## 1 - Updating the Partner Configuration
 
 **The developers recommend editing the Partner Configuration (PartnerConfig.xml) with Visual Studio Code, however feel free to use your favorite text editor that supports "UTF-8 w/ BOM" Encoding.**
 
 Open **PartnerConfig.xml** to begin. This **Partner Configuration** is your one-stop shop for configuring the **Deployment Package.** Enter data for each value between the relevant XML Tags (many values are already assigned Defaults to serve as an example). Information about the Expected Format and Purpose of each Configuration Value is contained above each value itself. Consider the table below a desk reference.
+
+In normal circumstances you would configure values like Service Behavior and Script Behavior, then the rest will be updated/injected via the provided AMPs.
 
 | Category | Value Name | Default Value | Mandatory | Purpose |
 | -------- | ---------- | ------------- | --------- | ------- |
@@ -285,16 +301,12 @@ Open **PartnerConfig.xml** to begin. This **Partner Configuration** is your one-
 | | *NETVersion* | 4.5.2 | Yes | User-Friendly Version of .NET Framework to install on Typical systems - for verification/logging purposes |
 | | *NETFileVersion* | 4.5.51209.34209 | Yes | Windows Version of the .NET Framework Installer to use on Typical systems, which should match the **File Version** property when you right-click **Properties > Details.** |
 | | *SOAgentFileName* | WindowsAgentSetup.exe | Yes | Name of the Agent Installer supplied in the Typical *InstallFolder* - change this each time you upgrade your N-Central Server, and **be sure to use the System-Level Agent Installer** |
-| | *SOAgentVersion* | 12.0.1.118 | Yes | User-Friendly (N-Central) Version of the Agent to install on Typical systems - for verification/logging purposes |
-| | *SOAgentFileVersion* | 12.0.10118.0 | Yes | Windows Version of the Agent Installer to use on Typical systems, which should match the **File Version** property when you right-click **Properties > Details.** |
+| | *SOAgentVersion* | 2020.1.5.425 | Yes | User-Friendly (N-Central) Version of the Agent to install on Typical systems - for verification/logging purposes |
+| | *SOAgentFileVersion* | 2020.1.50425.0 | Yes | Windows Version of the Agent Installer to use on Typical systems, which should match the **File Version** property when you right-click **Properties > Details.** |
 | | *CustomerId* | null | No | The Customer ID value as found under **Administration > Customers**, typically populated via a provided AMP|
 | | *RegistrationToken* | null | No | The Registration Token value as found under **Actions > Download Agent/Probe > Get Registration Token**, typically populated via a provided AMP|
 | | *AzNableProxyUri* | null | No | The URI of the AzNableProxy function as found under the function app overview but without the leading https:// , ie. mytokenproxy.azurewebsite.net. Typically updated via a provided AMP.|
 | | *AzNableAuthCode* | null | No | The AuthCode of the AzNableProxy function as found under the **Functions > GET function > Function Keys**. Typically updated via a provided AMP.|
-
-
-
-
 
 Once you've made your adjustments, in most cases, you should be able to utilize the Configuration Values for your all your clients, but you may elect to customize them for specific environments. For example, you may wish to increase the *PingTolerance* for a Customer/Site where you know there is significant latency, and therefore Agents may have trouble reliably communicating with the N-Central Server.
 
@@ -303,7 +315,6 @@ A small amount of customization can also be made in the **Agent Launcher Script*
 | Value Name | Default Value | Mandatory | Purpose |
 | ---------- | ------------- | --------- | ------- |
 | *TempFolder* | C:\Windows\Temp\AGPO | Yes | This should be a Local Folder on the system where the **Deployment Package** components work from, **NOT to be confused with the *LocalFolder* value in the Partner Configuration.** Whether run by Group Policy or On-Demand (click-to-run), the required components are dropped here during execution and then **removed upon termination of the Package.** |
-| *DLThreshold* | 3 | Yes | This is the maximum number of attempts the **Agent Setup Launcher** will make to download any prerequisite components needed for Agent installation. If this value is exceeded, the **Launcher will terminate, and it must be run again.** |
 | *NoArgs* | 0 | Yes | Disable the usage of arguments passed to this script. This way you can **not** pass CustomerID and Token through arguments, but if you have an older GPO that still uses a domainname or the term AUTO, you can set this value to 1. This way you don't need to change all those GPO's. **If set to 1, you do need another way to pass CustomerID and Token, or through the PartnerConfig.xml, or through azNableProxy** |
 
 If you elect to make any changes, you will need to adjust the values **immediately following the equals (=) sign** in their relevant **SET** statements. For example:
@@ -416,17 +427,69 @@ Congratulations! Your **Group Policy Deployment** is ready for action!
 
 
 ## OPTIONAL
-## 1a - Setup the N-Central Custom Service (Version 4.xx)
-<span style="color:red">
-***ATTENTION - The Custom Service Package is no longer compatible with Deployment Package 5.0.0 and above***</span>
-<span style="color:red">
-Another option for viewing results of the **Deployment Package** is to **Monitor the Registry updates it makes to the Device with N-Central.** You can setup the **Custom Service Package** to do exactly that! The current Version of the **Custom Service** is called **Agent Installer Script Status** in N-Central, and is compatible with the following:</span>
+## 1a - Setup the N-Central Custom Service (Version 6.xx)
 
-*   **InstallAgent Deployment Package 4.xx**
-*   **N-Central 9.5 SP1 and Above**
-<span style="color:red">
-For setup and configuration help, consult the appropriate SolarWinds MSP N-Central Documentation for **Importing a Custom Service.**</span>
+*   **InstallAgent Deployment Package 6.xx**
+*   **N-Able N-central 2020.1 HF5 and Above**
+For setup and configuration help, consult the appropriate N-Able N-Central Documentation for **Importing a Custom Service.**
 
+## 1b - Setup AMP based PartnerConfiguration update amps
+To mange Customer agent install tokens automatically without setting the expiration, deploy the AMP to your N-Central server then:
+*   Create a security role for the automation account, lease privelege requires:
+    * Devices -> Network Devices -> Edit Device Settings \[Read Only\]
+    * Devices -> Network Devices -> Registration Tokens \[Manage\]
+*   Create an automation account with no MFA and note the Username, Password and JWT
+*   Create a N-Central task against a server, preferably an internal server with the most direct line of sight to the N-Central server
+*   Fill out the input parameters for the AMP
+
+| Parameter | Value |
+| ----- | ----- |
+| Username | username of the automation account |
+| Password | password of the automation account |
+| N-Central FQDN | address of the N-Central server. eg. `n-central.mymsp.com`
+| Expiration Tolerance | Days prior to the token expiration to force a update on the token (positive value)
+| JWT | JWT of the automation account |
+
+## 1c - Setup AMP based PartnerConfiguration update amps
+Of the two AMP based tools provided, deploy the ones that most suits your unique business/customer/security situation. As needed you can create and deploy your own custom module to override default Install Methods. To install these AMPS consult the appropriate N-Able N-Central Documentation for **Importing a Custom Service.**
+
+### Update PartnerConfig from CP
+Before deploying this AMP you will need to:
+*   Create your own Custom Properties for Customers/Properties
+*   Create a custom script that re-injects the CustomerID/Token into Customers/Properties (see [NC-API-Documentation](https://github.com/AngryProgrammerInside/NC-API-Documentation/) example)
+
+Once done point the AMP at your applicable domain controller(s) and populate the following fields that will be injected into the PartnerConfig.xml:
+| Name | Default | Value |
+| -----| ----- | ----- |
+| Registration Token| *null* | Custom Property |
+| Customer ID | *null* | Custom Property |
+| Local Folder | *C:\Windows\SecurityThroughObscurity* | You can set the default to a unique location within the AMP, this is where the History.XML gets saves
+| Network Folder | Agent | You can set this the name of your own Network folder, this is the name of the folder under Netlogon |
+| SO Agent File Name | WindowsAgentSetup.exe | Name of the current Agent setup executable.|
+| SO Agent Version | 2020.1.5.425 | Friendly version number |
+| SO Agent File | 2020.1.50425.0 | Internal file version number |
+| Branding | *My MSP @ MSP.com * | Informational detail display in Application log |
+| AzNableProxuUri | *null* | Uri of your AzNableProxy |
+| AzNableAuthCode | *null* | Auth key code for you GET function
+
+Once verified working as intended you can place this on a schedule if required.
+
+### Update PartnerConfig from JWT
+This AMP only requires the JWT and will automatically discover the CustomerId and Token through the N-Central API. Create an PowerShell automation account for your account with the following role permissions for **Devices -> Network Devices --> Registration Tokens \[Manage\]**
+
+Once done point the AMP at your applicable domain controller(s) and populate the following fields:
+| Name | Default | Value |
+| -----| ----- | ----- |
+| Local Folder | *C:\Windows\SecurityThroughObscurity* | You can set the default to a unique location within the AMP, this is where the History.XML gets saves
+| Network Folder | Agent | You can set this the name of your own Network folder, this is the name of the folder under Netlogon |
+| SO Agent File Name | WindowsAgentSetup.exe | Name of the current Agent setup executable.|
+| SO Agent Version | 2020.1.5.425 | Friendly version number |
+| SO Agent File | 2020.1.50425.0 | Internal file version number |
+| Branding | *My MSP @ MSP . com* | Informational detail display in Application log |
+| AzNableProxuUri | *null* | Uri of your AzNableProxy |
+| AzNableAuthCode | *null* | Auth key code for you GET function
+
+Once verified working as intended you can place this on a schedule.
 
 ## 2 - Review Deployment Package Results
 
@@ -530,22 +593,41 @@ Lastly in our example, the Agent Service Configuration has been compromised once
 
 ### N-Central Custom Service
 
-***ATTENTION - The Custom Service Package is no longer compatible with Deployment Package 5.0.0 and above***
-
 If you have setup the **Custom Service Package,** you can also review the results of the most recent run of the **Deployment Package** directly in N-Central!
 
-A sample of output from the **Custom Service** in N-Central can be seen below:
+A sample of output from the **Custom Service** in N-Central can be seen below for a service in a healthy state:
 
 ![](media/readme-image0.png)
 
-| Parameter | Thresholds | Description |
-| --------- | ---------- | ----------- |
-| *Date/Time of Last Execution* | None | Timestamp of most recent **Agent Setup Script** run |
-| *Path to Installer Files* | None | Location of the *NetworkFolder* |
-| *Script Version* | Warning on Outdated Version | Detected Version of the **Agent Setup Script** |
-| *Last Successful Completion* | None | Timestamp of last Successful result (Code 10) |
-| *Last Result Code* | Warning on Codes 1 thru 9, Failed on Code 0 | Exit Code returned by the most recent **Agent Setup Script** run |
-| *Last Execution Mode* | Warning on Interactive Mode | Execution Mode used by the most recent **Agent Setup Script** run |
+| Parameter |Type | Null value| Thresholds | Description |
+| --------- | --------- | --------- | ---------- | ----------- |
+| *Script Action*| String | - | **Not** Graceful Exit | The last action take by the Agent Installer |
+| *Script Exit Code* | Number | 404 | **Not** 0 | Exit code of the Agent Installer script |
+| *Script Version* | Number | 404 | Warning on Outdated Version | Detected Version of the **Agent Setup Script** |
+| *Script Result* | String | - | **Not** Script Completed Successfully | The last action take by the Agent Installer |
+| *Script Last Ran* | DateTime | 1/1/1900 | Default timedate threshold | Timestamp of last run |
+| *Script Mode* | String | - | None | Displays if GPO or On-Demand |
+| *Script Sequence* | String | - | The last point/function being called | Execution Mode used by the most recent **Agent Setup Script** run |
+| *Agent Last Diagnosed* | DateTime | 1/1/1900 | Default timedate threshold | Displays when the Diagnosis function last ran, typically this is each run |
+| *Agent Last Installed* | DateTime | 1/1/1900 | Default timedate threshold | Displays when the Agent called the Install function to deploy the package
+
+<br>
+
+When deploying the custom service package to a service template, it is recommmended to disable threshold monitoring of *Agent Last Diagnosed* and *Agent Last Installed* as the values may not always be available. It is optional to have a threshold on the *Script Last Ran* depending how often you reboot and how often you expect machines to run the Agent Installer script.
+
+Some further examples of output you may encounter from the service:
+
+| **Old version of script warning**|
+| -- |
+|![Old Version of script](media/readme-image9.png)|
+
+| **Script has never run/registry values missing** |
+| -- |
+| ![No registry values](media/readme-image10.png) |
+
+| **Agent upgrade failed** |
+| -- |
+| ![Agent upgrade failed](media/readme-image11.png) |
 
 
 # Testing and Troubleshooting
@@ -631,4 +713,6 @@ Special Thanks go to the following Partners and Community Members for their cont
     *   **Deployment Package** PowerShell/Batch changes and QA from 5.0.1 to 6.0.0
 *   David Brooks of Premier Technology Solutions    
     *   **Deployment Package** PowerShell/Batch/AMP feature updates from 5.0.1 to 6.0.0 and documentation
+*   Kelvin Tegelaar of Lime Networks 
+    *   **AzNableProxy** Created and updated the AzNableProxy service for Azure used in this package
 *   All Partners and SolarWinds MSP Community Members who have helped and contributed ideas to this **Automation Suite**

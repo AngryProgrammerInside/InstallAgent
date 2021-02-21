@@ -5,7 +5,7 @@ SET NL=^
 
 REM = ### ABOUT
 REM - Agent Setup Launcher
-REM   Updated by David B, PTS. Robby S, b-inside. 2021
+REM   Updated by David B, PTS. Robby S, b-inside. 2021-02-21
 REM   by Ryan Crowther Jr, RADCOMP Technologies - 2019-08-26
 REM - Original Script (InstallAgent.vbs) by Tim Wiser, GCI Managed IT - 2015-03
 
@@ -37,9 +37,10 @@ IF %NoArgs% EQU 0 (
 )
 ECHO Number of arguments: %ArgCount%
 REM - Launcher Script Name
-SET LauncherScript=Agent Setup Launcher
+SET "LauncherScript=Agent Setup Launcher"
+ECHO %LauncherScript%
 REM - Setup Script Name
-SET SetupScript=Agent Setup Script
+SET "SetupScript=Agent Setup Script"
 REM - Default Customer ID
 SET CustomerID=%1%
 REM - Activation token
@@ -167,7 +168,7 @@ IF %ERRORLEVEL% EQU 0 (
 
 :QuitIncompatible
 ECHO X  OS Not Compatible with either the Agent or the %SetupScript%
-EVENTCREATE /T INFORMATION /ID 13 /L APPLICATION /SO "%LauncherScript%" /D "The OS is not compatible with the N-Central Agent or the %SetupScript%." >NUL
+EVENTCREATE /T ERROR /ID 13 /L APPLICATION /SO "%LauncherScript%" /D "The OS is not compatible with the N-Central Agent or the %SetupScript%." >NUL
 SET LegacyWait=1
 GOTO Done
 
@@ -178,7 +179,7 @@ GOTO Cleanup
 
 :QuitSuccess
 ECHO O  %SetupScript% Launched Successfully
-EVENTCREATE /T ERROR /ID 10 /L APPLICATION /SO "%LauncherScript%" /D "Agent Setup Launcher successful" >NUL
+EVENTCREATE /T INFORMATION /ID 10 /L APPLICATION /SO "%LauncherScript%" /D "Agent Setup Launcher successful" >NUL
 GOTO Done
 
 :Cleanup
@@ -187,5 +188,5 @@ RD /S /Q "%TempFolder%" 2>NUL
 :Done
 ECHO == Launcher Finished ==
 ECHO Exiting...
+
 PING 192.0.2.1 -n 10 -w 1000 >NUL
-EXIT 10

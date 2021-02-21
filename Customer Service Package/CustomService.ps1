@@ -16,16 +16,16 @@ $AgentRegPath = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent"
 $InstallAgentResults = ReadKey $AgentRegPath
 
 # These value is almost always present
-$AgentLastDiagnosed = $InstallAgentResults.AgentLastDiagnosed
+$AgentLastDiagnosed = if ($null -ne $InstallAgentResults.AgentLastDiagnosed) { $InstallAgentResults.AgentLastDiagnosed }else { Get-Date 1900 }
 
 # This value is present if the script has installed or upgraded at some point
-$AgentLastInstalled = $InstallAgentResults.AgentLastInstalled
+$AgentLastInstalled = if ($null -ne $InstallAgentResults.AgentLastInstalled) { $InstallAgentResults.AgentLastInstalled } else { Get-Date 1900 }
 
 # These values are always present
-$ScriptAction = $InstallAgentResults.ScriptAction
-$ScriptExitCode = $InstallAgentResults.ScriptExitCode
-$ScriptLastRan = $InstallAgentResults.ScriptLastRan
-$ScriptMode = $InstallAgentResults.ScriptMode
-$ScriptResult = $InstallAgentResults.ScriptResult
-$ScriptSequence = $InstallAgentResults.ScriptSequence
-$ScriptVersion = $InstallAgentResults.ScriptVersion
+$ScriptAction = if ($null -ne $InstallAgentResults.ScriptAction) { $InstallAgentResults.ScriptAction } else { '-' }
+$ScriptExitCode = if ($null -ne $InstallAgentResults.ScriptExitCode) { $null -ne $InstallAgentResults.ScriptExitCode } else { 404 }
+$ScriptLastRan = if ($null -ne $InstallAgentResults.ScriptLastRan) { $InstallAgentResults.ScriptLastRan } else { Get-Date 1900 }
+$ScriptMode = if ($null -ne $InstallAgentResults.ScriptMode) { $InstallAgentResults.ScriptMode } else { '-' }
+$ScriptResult = if ($null -ne $InstallAgentResults.ScriptResult) { $InstallAgentResults.ScriptSequence } else { '-' }
+$ScriptSequence = if ($null -ne $InstallAgentResults.ScriptSequence) { $InstallAgentResults.ScriptSequence } else { '-' }
+$ScriptVersion = if ($null -ne $InstallAgentResults.ScriptVersion) { [int]$InstallAgentResults.ScriptVersion.Replace('.', '') } else { 404 }

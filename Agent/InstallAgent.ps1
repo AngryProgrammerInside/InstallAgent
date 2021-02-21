@@ -286,7 +286,7 @@ $SC = @{
   }
   "RunningInstanceTimeout" = 30
   "ScriptEventLog"         = "Application"
-  "ScriptVersion"          = "5.0.1"
+  "ScriptVersion"          = "6.0.0"
   "SuccessScriptAction"    = "Graceful Exit"
   "SuccessScriptResult"    = "Script Completed Successfully"
 }
