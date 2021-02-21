@@ -1,7 +1,7 @@
 param (
     [Switch]$Monitor
 )
-### 1.0.0 on 2021-02-07 - David Brooks, Premier Technology Solutions
+### 1.0.0 on 2021-02-21 - David Brooks, Premier Technology Solutions
 ##################################################################
 # - Adapted updated Batch file version of InstallAgent to PowerShell
 Write-Host "CustomerID: $($args[0])" -ForegroundColor Green

@@ -1,6 +1,6 @@
 ﻿# Core Functions for the Agent Setup Script (InstallAgent.ps1)
-# Last Revised:   2021-02-01
-# Module Version: 5.0.3
+# Last Revised:   2021-02-21
+# Module Version: 6.0.0
 
 ### INITIALIZATION FUNCTIONS
 ###############################
