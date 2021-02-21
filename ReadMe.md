@@ -59,7 +59,7 @@ This script is a fork of Ryan Crowther Jr's [AgentDeploymentPackage on GitHub](h
 
 Feel free to provide feedback and lodge issues and they will be reviewed.
 
-## New and improved Features in AgentDeploymentPackage in 6.0.0 (Beta)
+## New and improved Features in AgentDeploymentPackage 6.0.0 (Beta)
 ![](media/readme-image8.png)
 *   Registration token install method:
     *   Activation Key methods for upgrades
