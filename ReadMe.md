@@ -46,16 +46,20 @@
 - [Credits](#credits)
 
 ## Introduction
-
 This is a community-based Automation Suite intended as a replacement for the stock N-central Group Policy Installer Script as provided by N-able. It is not supported by SolarWinds MSP or N-able, so please do not contact their support department regarding any problems or questions about this script. In addition, please do not contact the support departments of any individual Partners in the SolarWinds MSP Community regarding the Automation Suite or its components.
-
-This script is a fork of Ryan Crowther Jr's AgentDeploymentPackage on GitHub [](https://github.com/N-able/AgentDeploymentPackage/)
 
 If you discover a problem with any component of the Automation Suite or have ideas on how it could be improved, post an issue on GitHub [](https://github.com/AngryProgrammerInside/InstallAgent/issues). Alternatively, post on the N-Central Slack Community chat.
 
 These tools are provided as-is, in the best of faith, by those Partners and Community Members involved in their development. If you use this in your environment, we would love to hear from you on GitHub!
 
-## New and improved Features since AgentDeploymentPackage in 6.0.0
+## Status of Suite
+All scripts in the suite have been run and tested as functional. It is currently considered in a 'beta' phase while wider testing is being performed.
+
+This script is a fork of Ryan Crowther Jr's [AgentDeploymentPackage on GitHub](https://github.com/N-able/AgentDeploymentPackage/), it is currently being reviewed by the original author for merge status and documentation is still being reviewed by contributors and community members.
+
+Feel free to provide feedback and lodge issues and they will be reviewed.
+
+## New and improved Features in AgentDeploymentPackage in 6.0.0 (Beta)
 ![](media/readme-image8.png)
 *   Registration token install method:
     *   Activation Key methods for upgrades
