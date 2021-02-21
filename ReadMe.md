@@ -416,7 +416,65 @@ Congratulations! Your **Group Policy Deployment** is ready for action!
 
 *   **InstallAgent Deployment Package 6.xx**
 *   **N-Able N-central 2020.1 HF5 and Above**
-For setup and configuration help, consult the appropriate SolarWinds MSP N-Central Documentation for **Importing a Custom Service.**
+For setup and configuration help, consult the appropriate N-Able N-Central Documentation for **Importing a Custom Service.**
+
+## 1b - Setup AMP based PartnerConfiguration update amps
+To mange Customer agent install tokens automatically without setting the expiration, deploy the AMP to your N-Central server then:
+*   Create a security role for the automation account, lease privelege requires:
+    * Devices -> Network Devices -> Edit Device Settings \[Read Only\]
+    * Devices -> Network Devices -> Registration Tokens \[Manage\]
+*   Create an automation account with no MFA and note the Username, Password and JWT
+*   Create a N-Central task against a server, preferably an internal server with the most direct line of sight to the N-Central server
+*   Fill out the input parameters for the AMP
+
+| Parameter | Value |
+| ----- | ----- |
+| Username | username of the automation account |
+| Password | password of the automation account |
+| N-Central FQDN | address of the N-Central server. eg. `n-central.mymsp.com`
+| Expiration Tolerance | Days prior to the token expiration to force a update on the token (positive value)
+| JWT | JWT of the automation account |
+
+## 1c - Setup AMP based PartnerConfiguration update amps
+Of the two AMP based tools provided, deploy the ones that most suits your unique business/customer/security situation. As needed you can create and deploy your own custom module to override default Install Methods. To install these AMPS consult the appropriate N-Able N-Central Documentation for **Importing a Custom Service.**
+
+### Update PartnerConfig from CP
+Before deploying this AMP you will need to:
+*   Create your own Custom Properties for Customers/Properties
+*   Create a custom script that re-injects the CustomerID/Token into Customers/Properties (see [NC-API-Documentation](https://github.com/AngryProgrammerInside/NC-API-Documentation/) example)
+
+Once done point the AMP at your applicable domain controller(s) and populate the following fields that will be injected into the PartnerConfig.xml:
+| Name | Default | Value |
+| -----| ----- | ----- |
+| Registration Token| *null* | Custom Property |
+| Customer ID | *null* | Custom Property |
+| Local Folder | *C:\Windows\SecurityThroughObscurity* | You can set the default to a unique location within the AMP, this is where the History.XML gets saves
+| Network Folder | Agent | You can set this the name of your own Network folder, this is the name of the folder under Netlogon |
+| SO Agent File Name | WindowsAgentSetup.exe | Name of the current Agent setup executable.|
+| SO Agent Version | 2020.1.5.425 | Friendly version number |
+| SO Agent File | 2020.1.50425.0 | Internal file version number |
+| Branding | *My MSP @ MSP.com * | Informational detail display in Application log |
+| AzNableProxuUri | *null* | Uri of your AzNableProxy |
+| AzNableAuthCode | *null* | Auth key code for you GET function
+
+Once verified working as intended you can place this on a schedule if required.
+
+### Update PartnerConfig from JWT
+This AMP only requires the JWT and will automatically discover the CustomerId and Token through the N-Central API. Create an PowerShell automation account for your account with the following role permissions for **Devices -> Network Devices --> Registration Tokens \[Manage\]**
+
+Once done point the AMP at your applicable domain controller(s) and populate the following fields:
+| Name | Default | Value |
+| -----| ----- | ----- |
+| Local Folder | *C:\Windows\SecurityThroughObscurity* | You can set the default to a unique location within the AMP, this is where the History.XML gets saves
+| Network Folder | Agent | You can set this the name of your own Network folder, this is the name of the folder under Netlogon |
+| SO Agent File Name | WindowsAgentSetup.exe | Name of the current Agent setup executable.|
+| SO Agent Version | 2020.1.5.425 | Friendly version number |
+| SO Agent File | 2020.1.50425.0 | Internal file version number |
+| Branding | *My MSP @ MSP . com* | Informational detail display in Application log |
+| AzNableProxuUri | *null* | Uri of your AzNableProxy |
+| AzNableAuthCode | *null* | Auth key code for you GET function
+
+Once verified working as intended you can place this on a schedule.
 
 ## 2 - Review Deployment Package Results
 
