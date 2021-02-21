@@ -97,10 +97,10 @@ help@mymsp.com
       <SOAgentFileName>WindowsAgentSetup.exe</SOAgentFileName>      <!-- Default Value is WindowsAgentSetup.exe -->
       <!-- [REQUIRED - (#.#.#.#)] Desired Agent Version for Installation on systems with Current
    Agent Versions (11.0.1.xxxx and Above) -->
-      <SOAgentVersion>12.0.1.118</SOAgentVersion>
+      <SOAgentVersion>2020.1.5.425</SOAgentVersion>
       <!-- [REQUIRED - (#.#.#.#)] Windows "File Version" of the System-Level Agent Installer (from
    Properties > Details > File Version) -->
-      <SOAgentFileVersion>12.0.10118.0</SOAgentFileVersion>
+      <SOAgentFileVersion>2020.1.50425.0</SOAgentFileVersion>
       <!-- [RECOMMENDED] ### CustomerID in number format. Normally this number starts from 100. If no arguments are given to the script, or NoArgs is set to 1 in the batch, this value is REQUIRED-->
       <CustomerId></CustomerId>
       <!-- ########### Registration token is a  Base64 encoded string. This is customer specific and can has an expiration time. Check your nCentral configuration to make shure when this expires. If AzNableProxy isn't used, and it isn't passed as an argument this is REQUIRED.  -->
