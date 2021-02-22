@@ -604,7 +604,7 @@ A sample of output from the **Custom Service** in N-Central can be seen below fo
 | *Script Action*| String | - | **Not** Graceful Exit | The last action take by the Agent Installer |
 | *Script Exit Code* | Number | 404 | **Not** 0 | Exit code of the Agent Installer script |
 | *Script Version* | Number | 404 | Warning on Outdated Version | Detected Version of the **Agent Setup Script** |
-| *Script Result* | String | - | **Not** Script Completed Successfully | The last action take by the Agent Installer |
+| *Script Result* | String | - | None | The last action take by the Agent Installer |
 | *Script Last Ran* | DateTime | 1/1/1900 | Default timedate threshold | Timestamp of last run |
 | *Script Mode* | String | - | None | Displays if GPO or On-Demand |
 | *Script Sequence* | String | - | The last point/function being called | Execution Mode used by the most recent **Agent Setup Script** run |
