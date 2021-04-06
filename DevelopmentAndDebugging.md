@@ -257,7 +257,7 @@ The `$Device` stores the results of the `GetDeviceInfo` function, these values a
 |PSVersion|5.1.19041.610|
 |Role|Standalone Workstation|
 |IsDomainJoined|FALSE|
-<br>
+
 ### $Install
 The `$Install` has a number of sub-hashtables, noteable of which is the MethodData table covered previously that can be viewed with the `DebugGetMethods` function.
 
@@ -284,7 +284,7 @@ Line to actually run setup with the given parameters for that Install type.
 |NCServerAccess|TRUE|
 |ChosenMethod|{Parameter, FailedAttempts, Type, Method...}|
 |AgentString|/S /V" /qn AGENTACTIVATIONKEY=c2hvcnRlbmVkIGZvciB0aGlzIGRvY3VtZW50"|
-<br>
+
 #### $Agent.ChosenAgent.InstallPath
 |Name|Example Values|
 | :- | :- |
@@ -292,7 +292,7 @@ Line to actually run setup with the given parameters for that Install type.
 |Version|2020.1.50425.0|
 |FileName|WindowsAgentSetup.exe|
 |InstallPath|C:\Windows\Temp\AGPO\Fetch\WindowsAgentSetup.exe|
-<br>
+
 ### $Agent
 The `$Agent` table is provides an abundance of information about the Agent, it's current state or lack thereof, current processes etc.
 * Appliance: Contains information merged from the ApplianceConfig.xml and ServerConfig.xml
@@ -317,7 +317,7 @@ The `$Agent` table is provides an abundance of information about the Agent, it's
 |Registry|{UninstallString, InstallLocation, DisplayVersion, InstallDate}|
 |DecodedActivationKey|HTTPS://nc.mymsp.com:443\|1234567890\|1\|f01ebde4-9cd2-46a1-9e5b-a41961c9c43b\|0\|
 |Docs|{Checker.log, Registry, ApplianceConfig.xml, AgentHistory.xml...}|
-<br>
+
 #### $Agent.Appliance
 
 |Key|Example Values|
@@ -329,7 +329,7 @@ The `$Agent` table is provides an abundance of information about the Agent, it's
 |AssignedServer|ncentral.mymsp.com|
 |LastInstall|16/02/2021 22:20|
 |ActivationKey|c2hvcnRlbmVkIGZvciB0aGlzIGRvY3VtZW50|
-<br>
+
 #### $Agent.Path
 
 |Key|Example Values|
@@ -341,7 +341,7 @@ The `$Agent` table is provides an abundance of information about the Agent, it's
 |ApplianceConfigBackup|C:\Program Files (x86)\N-Able Technologies\Windows Agent\config\ApplianceConfig.xml.backup|
 |ServerConfig|C:\Program Files (x86)\N-Able Technologies\Windows Agent\config\ServerConfig.xml|
 |History|C:\Windows\SecurityObscurity\Agent\AgentHistory.xml|
-<br>
+
 #### $Agent.Health
 
 |Key|Example Values|
