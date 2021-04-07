@@ -1651,11 +1651,12 @@ function DiagnoseAgent {
         Where-Object { $_.DisplayName -eq $NC.Products.Agent.WindowsName }
     ).PSPath
     if ($null -ne $Agent.Path.Registry) {
-        $Agent.Docs.Registry =
+        $RegistryTable = @{}
         Get-ItemProperty $Agent.Path.Registry |
         Get-Member -MemberType NoteProperty |
         Select-Object -ExpandProperty Name |
-        ForEach-Object { @{ $_ = (Get-ItemProperty $Agent.Path.Registry).$_ } }
+        ForEach-Object { $RegistryTable.Add($_,(Get-ItemProperty $Agent.Path.Registry).$_) }
+        $Agent.Docs.Registry = $RegistryTable
     }
     ### Get Info About Last Known Installation (in case Agent is Missing)
     if ((Test-Path $Agent.Path.History -PathType Leaf) -eq $true) {
