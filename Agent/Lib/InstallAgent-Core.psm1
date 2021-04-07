@@ -2964,6 +2964,7 @@ function RemoveAgent {
     DiagnoseAgent -NoLog -NoServerCheck
     if ($Agent.Health.Installed -eq $true) {
         # Exit - Agent Removal Failed
+        FixServices -Restart
         $Out = (
             "MSI Removal of the existing " + $NC.Products.Agent.Name + " failed. " +
             "Manual forcible removal is required for the Script to continue."
