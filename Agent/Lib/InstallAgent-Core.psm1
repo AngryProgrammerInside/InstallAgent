@@ -1,6 +1,6 @@
 ﻿# Core Functions for the Agent Setup Script (InstallAgent.ps1)
-# Last Revised:   2021-02-21
-# Module Version: 6.0.0
+# Last Revised:   2021-03-23
+# Module Version: 6.0.1
 
 ### INITIALIZATION FUNCTIONS
 ###############################
@@ -421,7 +421,10 @@ function GetDeviceInfo {
         if ($Device.OSName -like "*64*")
         { "64-bit" } else { "32-bit" }
     }
-    else { $WMIos.OSArchitecture }
+    else {
+        if ($WMIos.OSArchitecture -like "*64*")
+        { "64-bit" } else { "32-bit" }
+    }
     # Program Files Location
     [String] $Device.PF32 =
     if ($Device.Architecture -eq "64-bit")
