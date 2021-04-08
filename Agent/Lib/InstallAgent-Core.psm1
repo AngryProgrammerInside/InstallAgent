@@ -675,6 +675,8 @@ function ValidatePartnerConfig {
     $Config.NETFile = $InstallInfo.NETFileName
     $Config.NETVersion = $InstallInfo.NETVersion
     $Config.NETFileVersion = $InstallInfo.NETFileVersion
+    $Config.EnforceBehaviorPolicy = $Partner.Config.ServiceBehavior.EnforcePolicy
+
     ### Function Body
     ###############################
     ### Validate Required Items from Partner Configuration
@@ -1411,44 +1413,48 @@ function QueryServices {
     if ($Agent.Services.Data.Values -notcontains $null)
     { $true } else { $false }
     # Agent Services Failure Behavior Configured
-    $Agent.Health.ServicesBehaviorCorrect =
-    if (
-        (
-            $Agent.Services.Failure.GetEnumerator() |
-            ForEach-Object {
-                switch ($_) {
-                    { $null -eq $_.Value }
-                    { $false; break }
-                    {
-                        (
+    if ($Config.EnforceBehaviorPolicy -eq $true) {
+        $Agent.Health.ServicesBehaviorCorrect =
+        if (
+            (
+                $Agent.Services.Failure.GetEnumerator() |
+                ForEach-Object {
+                    switch ($_) {
+                        { $null -eq $_.Value }
+                        { $false; break }
+                        {
                             (
                                 (
-                                    $_.Value.Actions.GetEnumerator() |
-                                    ForEach-Object {
-                                        if ($null -ne $_.Value)
-                                        { $_.Value.Split()[0] -eq $Config.$("ServiceAction" + $_.Name) }
-                                        else { $false }
-                                    }
-                                ) -notcontains $false
-                            ) -and
-                            (
+                                    (
+                                        $_.Value.Actions.GetEnumerator() |
+                                        ForEach-Object {
+                                            if ($null -ne $_.Value)
+                                            { $_.Value.Split()[0] -eq $Config.$("ServiceAction" + $_.Name) }
+                                            else { $false }
+                                        }
+                                    ) -notcontains $false
+                                ) -and
                                 (
-                                    $_.Value.Delays.GetEnumerator() |
-                                    ForEach-Object { $_.Value -eq $Config.$("ServiceDelay" + $_.Name) }
-                                ) -notcontains $false
-                            ) -and
-                            ($_.Value.Reset -eq $Config.ServiceReset) -and
-                            ($_.Value.Command -eq $Config.ServiceCommand)
-                        )
+                                    (
+                                        $_.Value.Delays.GetEnumerator() |
+                                        ForEach-Object { $_.Value -eq $Config.$("ServiceDelay" + $_.Name) }
+                                    ) -notcontains $false
+                                ) -and
+                                ($_.Value.Reset -eq $Config.ServiceReset) -and
+                                ($_.Value.Command -eq $Config.ServiceCommand)
+                            )
+                        }
+                        { $true; break }
+                        Default
+                        { $false; break }
                     }
-                    { $true; break }
-                    Default
-                    { $false; break }
                 }
-            }
-        ) -notcontains $false
-    )
-    { $true } else { $false }
+            ) -notcontains $false
+        )
+        { $true } else { $false }
+    } else {
+        $Agent.Health.ServicesBehaviorCorrect = $true
+    }
     # Agent Services Running
     $Agent.Health.ServicesRunning =
     if (
@@ -1655,7 +1661,7 @@ function DiagnoseAgent {
         Get-ItemProperty $Agent.Path.Registry |
         Get-Member -MemberType NoteProperty |
         Select-Object -ExpandProperty Name |
-        ForEach-Object { $RegistryTable.Add($_,(Get-ItemProperty $Agent.Path.Registry).$_) }
+        ForEach-Object { $RegistryTable.Add($_, (Get-ItemProperty $Agent.Path.Registry).$_) }
         $Agent.Docs.Registry = $RegistryTable
     }
     ### Get Info About Last Known Installation (in case Agent is Missing)

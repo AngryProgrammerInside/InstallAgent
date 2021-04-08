@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 # ABOUT
+# - Updated Configuration file by David Brooks/Robby Swartenbroekx
 # - Partner Configuration File for the InstallAgent Automation Suite
 #   by Ryan Crowther Jr, RADCOMP Technologies - 2019-08-26
 # - Original Configuration File (InstallAgent.ini) by Jon Czerwinski, Cohn Consulting Corp. - 2017-01-20
 # Maintained by the Solarwinds MSP Community
-# File Version - 5.0.1
+# File Version - 6.0.1
 
 # USAGE
 Set your Configuration Values for your Deployment Package here. See the Deployment Steps section of
@@ -57,6 +58,8 @@ help@mymsp.com
   -->
   </Server>
   <ServiceBehavior>
+    <!-- [RECOMMENDED - (False)] Enables the script to enforce startup behavior standards -->
+    <EnforcePolicy>False</EnforcePolicy>
     <!-- [RECOMMENDED - (RESTART, RUN, REBOOT)] Windows Service Recovery Actions -->
     <ActionA>RESTART</ActionA>    <!-- Default Value is RESTART -->
     <ActionB>RESTART</ActionB>    <!-- Default Value is RESTART -->
