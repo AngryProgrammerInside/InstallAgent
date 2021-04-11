@@ -84,7 +84,7 @@ function AlphaValue {
     param ($Value, [Switch] $2Digit)
     ### Function Body
     ###############################
-    if ($2Digit -eq $true)
+    if ($2Digit.IsPresent -eq $true)
     { return ("A" + [String]([Char]($Value - 35))) }
     else
     { return ([String]([Char]($Value + 65))) }
@@ -200,10 +200,13 @@ function Log {
     )
     ### Parameter Validation
     ###############################
-    if ($EndSequence -eq $true)
+    # Notes:
+    # If you are ending a sequence, log the EndSequence with no other parameters
+    # Always submit an EventType, Code and Message if you are not calling the end sequence
+    if ($EndSequence.IsPresent -eq $true)
     { <# Other Parameters are not Required #> }
     else { 
-        if ($BeginSequence -eq $true) {
+        if ($BeginSequence.IsPresent -eq $true) {
             # EventType and Code are not Required
             $EventType = "Information"
             $Code = 0
@@ -264,7 +267,7 @@ function Log {
     }
     ### Function Body
     ###############################
-    if ($EndSequence -eq $false) {
+    if ($EndSequence.IsPresent -eq $false) {
         ### Update Script Event Level
         $Script.Results.ErrorLevel =
         switch ($Script.Results.ErrorLevel) {
@@ -281,14 +284,14 @@ function Log {
     if ($Script.Sequence.Order -notcontains $Script.Execution.ScriptSequence)
     { $Script.Sequence.Order += @($Script.Execution.ScriptSequence) }
     # Determine the Sequence Status
-    if ($BeginSequence -eq $true) {
+    if ($BeginSequence.IsPresent -eq $true) {
         $Status = $SC.SequenceStatus.C
         # Add Sequence Header Before Detail Message
         $Script.Results.Details +=
         ("--== " + $Script.Execution.ScriptSequence + " ==--"),
         $Message
     }
-    if (($BeginSequence -eq $false) -and ($EndSequence -eq $false)) {
+    if (($BeginSequence.IsPresent -eq $false) -and ($EndSequence.IsPresent -eq $false)) {
         $Status =
         switch ($Code) {
             0
@@ -301,7 +304,7 @@ function Log {
         # Add Detail Message to Current Sequence
         $Script.Results.Details += @("`n" + $Message)
     }
-    if ($EndSequence -eq $true) {
+    if ($EndSequence.IsPresent -eq $true) {
         # Change Status to COMPLETE Unless Otherwise Specified
         $Status =
         if ($Script.Sequence.Status[-1] -eq $SC.SequenceStatus.C)
@@ -318,10 +321,10 @@ function Log {
         { ($Script.Sequence.Status)[$SelectedStatus] = $Status }
     }
     # Update the Registry Sequence Status if Required
-    if (@($BeginSequence, $EndSequence) -contains $true)
+    if (@($BeginSequence.IsPresent, $EndSequence.IsPresent) -contains $true)
     { WriteKey $Script.Results.ScriptKey $Script.Execution }
     ### Terminate if Requested
-    if ($Exit -eq $true) { Quit $Code }
+    if ($Exit.IsPresent -eq $true) { Quit $Code }
 }
 
 function CatchError {
@@ -361,7 +364,7 @@ function CatchError {
         ($ExcMsg -join "`n")
     }
     Log E $Code $Out
-    if ($Exit -eq $true) { Quit $Code }
+    if ($Exit.IsPresent -eq $true) { Quit $Code }
 }
 
 function GetDeviceInfo {
@@ -594,13 +597,13 @@ function ValidateItem {
     ### Function Body
     ###############################
     $RequiredType =
-    if ($Folder -eq $true)
+    if ($Folder.IsPresent -eq $true)
     { "Container" } else { "Leaf" }
     $ImposterType =
-    if ($Folder -eq $true)
+    if ($Folder.IsPresent -eq $true)
     { "Leaf" } else { "Container" }
     $NewItemType =
-    if ($Folder -eq $true)
+    if ($Folder.IsPresent -eq $true)
     { "Directory" } else { "File" }
     $Path |
     ForEach-Object {
@@ -608,13 +611,13 @@ function ValidateItem {
         # Check for and Remove Imposters
         if ((Test-Path $p -PathType $ImposterType) -eq $true)
         { Remove-Item $p -Recurse -Force 2>$null }
-        if ($NoNewItem -eq $false) {
+        if ($NoNewItem.IsPresent -eq $false) {
             # Create an Empty Item if Required
             if ((Test-Path $p) -eq $false)
             { New-Item $p -ItemType $NewItemType -Force >$null 2>$null }
         }
         $ValidateResult +=
-        if ($RemoveItem -eq $true) {
+        if ($RemoveItem.IsPresent -eq $true) {
             Remove-Item $p -Recurse -Force 2>$null
             @((Test-Path $p) -eq $false)
         }
@@ -662,7 +665,7 @@ function ValidatePartnerConfig {
         # Legacy support no longer available, error out
         $InstallInfo = $Partner.Config.Deployment.Legacy
         $Out = "Name-Central Agent for Windows is no longer supported on Vista/2008 and earlier"
-        Log "LEGACY" 2 $Out -Exit
+        Log E 19 $Out -Exit
     }
     $Config.InstallFolder = $InstallInfo.InstallFolder
     $Config.AgentFile = $InstallInfo.SOAgentFileName
@@ -1609,7 +1612,7 @@ function DiagnoseAgent {
             break
         }
         $SC.SequenceNames.E {
-            if ($NoLog -eq $false)
+            if ($NoLog.IsPresent -eq $false)
             { Log I 0 "Re-Checking Agent Health after Install Action..." }
             break
         }
@@ -1852,7 +1855,7 @@ function DiagnoseAgent {
     }
     else { $false }
     # Log Discovered Agent Status
-    if (($Agent.Health.Installed -eq $true) -and ($NoLog -eq $false)) {
+    if (($Agent.Health.Installed -eq $true) -and ($NoLog.IsPresent -eq $false)) {
         $Out = @("Found:")
         $Out += @(
             switch ($Agent.Appliance) {
@@ -1901,7 +1904,7 @@ function DiagnoseAgent {
     }
     else { $false }
     ### Verify Connectivity to Partner Server
-    if ($NoServerCheck -eq $false)
+    if ($NoServerCheck.IsPresent -eq $false)
     { TestNCServer }
     ### Check if Installed Agent Server Address matches Partner Configuration
     $Agent.Health.AssignedToPartnerServer =
@@ -1939,7 +1942,7 @@ function DiagnoseAgent {
     $Script.Execution.AgentLastDiagnosed = Get-Date -UFormat $SC.DateFormat.Full
     WriteKey $Script.Results.ScriptDiagnosisKey $Agent.Health
     # Identify/Log Needed Repairs
-    if ($NoLog -eq $false) {
+    if ($NoLog.IsPresent -eq $false) {
         $Out = @("Current Agent Status is " + $Agent.Health.AgentStatus + ":")
         $Out += @(
             switch ($Agent.Health.AgentStatus) {
@@ -1967,7 +1970,8 @@ function DiagnoseAgent {
     # Determine Sequence Behavior After Diagnosis
     if (($Agent.Health.AgentStatus -eq $SC.ApplianceStatus.A) -and ($Script.Sequence.Order[-1] -eq $SC.SequenceNames.C)) {
         # No Further Action Required After Initial Diagnosis
-        Log -EndSequence -Code 0 -Exit
+        Log -EndSequence
+        Log I -Code 0 -Message "No Further Action Required After Initial Diagnosis - Exiting" -Exit
     }
     # Proceed to Next Sequence or Return to Current Sequence
 }
@@ -2060,7 +2064,7 @@ function FixServices {
     $Agent.Services.Data.Keys |
     ForEach-Object {
         $s = $_
-        if ($Disable -eq $true) {
+        if ($Disable.IsPresent -eq $true) {
             ### Stop and Disable the Services Instead
             & SC.EXE CONFIG "$s" START= "Disabled" >$null 2>$null
             & TASKKILL.EXE /PID $Agent.Processes.$s.ID /F >$null 2>$null
@@ -2072,7 +2076,7 @@ function FixServices {
                 switch ($Agent.Services.Data.$s.State) {
                     "Running" {
                         # Service Running - Attempt to Restart Only if Specified
-                        if ($Restart -eq $true) {
+                        if ($Restart.IsPresent -eq $true) {
                             & TASKKILL.EXE /PID $Agent.Processes.$s.ID /F >$null 2>$null
                             if (@(0, 128) -contains $LASTEXITCODE) {
                                 Get-Service -Name $s | Stop-Service 2>$null -WarningAction SilentlyContinue
@@ -2117,7 +2121,7 @@ function FixServices {
             }
         }
     }
-    if ($Disable -eq $false) {
+    if ($Disable.IsPresent -eq $false) {
         # Re-Check Service/Process Status After Repair
         $RepairResult = VerifyServices
         # Complete the Repair unless it Otherwise Failed
@@ -2396,8 +2400,8 @@ function RepairAgent {
                         }
                     }
                 )
-                Log I 0 $Out
-                Log -EndSequence -Code 0 -Exit
+                Log -EndSequence
+                Log I 0 $Out -Exit
             }
             Default {
                 $Out = @(

@@ -390,7 +390,7 @@ $SC.Exit = @{
     "ExitResult"  = "File/Folder Creation Failed"
     "ExitType"    = $SC.ExitTypes.E
   }
-  "LEGACY" = @{
+  "AF" = @{
     "ExitMessage" = "The agent could not be installed on this legacy platform."
     "ExitResult"  = "Legacy installation unavailable"
     "ExitType"    = $SC.ExitTypes.E
