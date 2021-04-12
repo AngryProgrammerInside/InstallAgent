@@ -1,6 +1,6 @@
 ﻿# Installation, Diagnostic and Repair Script for the N-Central Agent
 # Original Script Created by Tim Wiser
-# Maintained by the Solarwinds MSP Community
+# Maintained by the N-Able MSP Community
 
 ################################
 ########## Change Log ##########
@@ -80,7 +80,7 @@
 # HOUSEKEEPING
 # - Re-published Change Log with most recent developments up top and some basic Categories for
 #   updates
-# - Moved Script Execution Registry Key to HKLM:\SOFTWARE\Solarwinds MSP Community
+# - Moved Script Execution Registry Key to HKLM:\SOFTWARE\N-Able MSP Community
 # - Added a Legacy Version Cleanup section which will automatically remove values/files created by
 #   older versions of the Script (Huge thanks to Tim and Jon for their contributions!)
 #
@@ -191,7 +191,7 @@ if ($DebugMode.IsPresent) {
   if (Get-Module InstallAgent-Core) {
     Remove-Module InstallAgent-Core
   }
-  $AgentRegPath = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent"
+  $AgentRegPath = "HKLM:\SOFTWARE\N-Able MSP Community\InstallAgent"
   if (Test-Path $AgentRegPath){
     Remove-Item $AgentRegPath -Recurse -Force
   }
@@ -482,7 +482,7 @@ $SC.Names = @{
 }
 # Path Constants
 $SC.Paths = @{
-  "ExecutionKey" = "HKLM:\SOFTWARE\Solarwinds MSP Community"
+  "ExecutionKey" = "HKLM:\SOFTWARE\N-Able MSP Community"
   "ServiceKey"   = "HKLM:\SYSTEM\CurrentControlSet\Services"
   "TempFolder"   = Split-Path $MyInvocation.MyCommand.Path -Parent
 }
@@ -575,6 +575,7 @@ $SC.Validation = @{
 }
 ### Retired Values - PLACE RETIRED VALUES HERE TO CLEANUP OLD SCRIPT ENTRIES
 $SC.Paths.Old = @{
+  "ExecutionKeySolarWinds"    = "HKLM:\SOFTWARE\SolarWinds MSP Community"
   "ExecutionKeyTim" = "HKLM:\SOFTWARE\Tim Wiser"
   "ExecutionKey"    = "HKLM:\SOFTWARE\N-Central"
   "EventKey"        = "HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\InstallAgent"
