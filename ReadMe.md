@@ -460,6 +460,18 @@ To mange Customer agent install tokens automatically without setting the expirat
 ## 1c - Setup AMP based PartnerConfiguration update amps
 Of the two AMP based tools provided, deploy the ones that most suits your unique business/customer/security situation. As needed you can create and deploy your own custom module to override default Install Methods. To install these AMPS consult the appropriate N-Able N-Central Documentation for **Importing a Custom Service.**
 
+## 1d - Setup AMP based monitoring of the PartnerConfig.xml file
+With Agent AD Status, you can check the health of the agent folder in your Active Directory.
+This AMP is only meant to be applied to domain controllers and will check for the following:
+*   Is the PartnerConfig.xml file available
+*   Version mentioned in PartnerConfig.xml file
+*   Version of nCentral in PartnerConfig.xml file
+*   Is the agent installation file available on the correct place
+*   Are the version of the agent installation file and the one mentioned in the PartnerConfig.xml file the same
+*   Is there a CustomerID in the PartnerConfig.xml file (and what is it)
+*   Is there a Registration Token in the PartnerConfig.xml file (not displayed, just if present or not)
+*   Is the correct GPO deployed in AD (Name is configurable)
+
 ### Update PartnerConfig from CP
 Before deploying this AMP you will need to:
 *   Create your own Custom Properties for Customers/Properties

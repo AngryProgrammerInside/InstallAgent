@@ -8,8 +8,7 @@
 
 ### 6.0.1 on 2021-04-12 - David Brooks & Robby Swartenbroekx
 ##################################################################
-# Moved Script Execution Registry Key to HKLM:\SOFTWARE\N-Able Community
-# Added Registry Key "HKLM:\SOFTWARE\Solarwinds MSP Community" to the cleanup part
+# See ReleaseNotes.md for all the changes
 
 ### 6.0.0 on 2021-02-01 - David Brooks
 ##################################################################

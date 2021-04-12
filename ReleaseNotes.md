@@ -8,6 +8,7 @@
 * Fixed bug where `switch` type parameter was being tested for boolean values rather than the .IsPresent field
 * Fixed bug where logging was being called incorrectly, leading to null values when writing to the event log
 * Updated reference for SolarWinds MSP to N-Able
+* Added Agent AD Status AMP to monitor the installer on a Domain Controller.
 
 
 # 2020-02-20
