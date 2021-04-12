@@ -1,10 +1,6 @@
 ﻿# Installation, Diagnostic and Repair Script for the N-Central Agent
 # Original Script Created by Tim Wiser
-<<<<<<< HEAD
 # Maintained by the N-Able MSP Community
-=======
-# Maintained by the NAble MSP Community
->>>>>>> 2433bd2bcae3a803c12bf6e8cd3b3eaa97034778
 
 ################################
 ########## Change Log ##########
@@ -200,13 +196,8 @@ if ($DebugMode.IsPresent) {
   if (Get-Module InstallAgent-Core) {
     Remove-Module InstallAgent-Core
   }
-<<<<<<< HEAD
   $AgentRegPath = "HKLM:\SOFTWARE\N-Able MSP Community\InstallAgent"
   if (Test-Path $AgentRegPath){
-=======
-  $AgentRegPath = "HKLM:\SOFTWARE\NAble MSP Community\InstallAgent"
-  if (Test-Path $AgentRegPath) {
->>>>>>> 2433bd2bcae3a803c12bf6e8cd3b3eaa97034778
     Remove-Item $AgentRegPath -Recurse -Force
   }
 }
@@ -496,11 +487,7 @@ $SC.Names = @{
 }
 # Path Constants
 $SC.Paths = @{
-<<<<<<< HEAD
   "ExecutionKey" = "HKLM:\SOFTWARE\N-Able MSP Community"
-=======
-  "ExecutionKey" = "HKLM:\SOFTWARE\NAble MSP Community"
->>>>>>> 2433bd2bcae3a803c12bf6e8cd3b3eaa97034778
   "ServiceKey"   = "HKLM:\SYSTEM\CurrentControlSet\Services"
   "TempFolder"   = Split-Path $MyInvocation.MyCommand.Path -Parent
 }
