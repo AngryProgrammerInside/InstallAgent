@@ -1,6 +1,6 @@
 ﻿# Installation, Diagnostic and Repair Script for the N-Central Agent
 # Original Script Created by Tim Wiser
-# Maintained by the N-Able MSP Community
+# Maintained by the N-Able Community
 
 ################################
 ########## Change Log ##########
@@ -8,7 +8,7 @@
 
 ### 6.0.1 on 2021-04-12 - David Brooks & Robby Swartenbroekx
 ##################################################################
-# Moved Script Execution Registry Key to HKLM:\SOFTWARE\NAble MSP Community
+# Moved Script Execution Registry Key to HKLM:\SOFTWARE\N-Able Community
 # Added Registry Key "HKLM:\SOFTWARE\Solarwinds MSP Community" to the cleanup part
 
 ### 6.0.0 on 2021-02-01 - David Brooks
@@ -85,7 +85,7 @@
 # HOUSEKEEPING
 # - Re-published Change Log with most recent developments up top and some basic Categories for
 #   updates
-# - Moved Script Execution Registry Key to HKLM:\SOFTWARE\N-Able MSP Community
+# - Moved Script Execution Registry Key to HKLM:\SOFTWARE\SolarWinds MSP Community
 # - Added a Legacy Version Cleanup section which will automatically remove values/files created by
 #   older versions of the Script (Huge thanks to Tim and Jon for their contributions!)
 #
@@ -196,7 +196,7 @@ if ($DebugMode.IsPresent) {
   if (Get-Module InstallAgent-Core) {
     Remove-Module InstallAgent-Core
   }
-  $AgentRegPath = "HKLM:\SOFTWARE\N-Able MSP Community\InstallAgent"
+  $AgentRegPath = "HKLM:\SOFTWARE\N-Able Community\InstallAgent"
   if (Test-Path $AgentRegPath){
     Remove-Item $AgentRegPath -Recurse -Force
   }
@@ -487,7 +487,7 @@ $SC.Names = @{
 }
 # Path Constants
 $SC.Paths = @{
-  "ExecutionKey" = "HKLM:\SOFTWARE\N-Able MSP Community"
+  "ExecutionKey" = "HKLM:\SOFTWARE\N-Able Community"
   "ServiceKey"   = "HKLM:\SYSTEM\CurrentControlSet\Services"
   "TempFolder"   = Split-Path $MyInvocation.MyCommand.Path -Parent
 }

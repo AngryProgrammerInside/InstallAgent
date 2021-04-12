@@ -12,7 +12,7 @@ function ReadKey {
     }
 }
 
-$AgentRegPath = "HKLM:\SOFTWARE\N-Able MSP Community\InstallAgent"
+$AgentRegPath = "HKLM:\SOFTWARE\N-Able Community\InstallAgent"
 $InstallAgentResults = ReadKey $AgentRegPath
 
 # These value is almost always present

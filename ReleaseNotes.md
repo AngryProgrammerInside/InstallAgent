@@ -1,4 +1,16 @@
-# 2020-02-xx
+# 2020-04-12
+* Fixed bug with 64-bit detection on languages other than english
+* Fixed bug where agent services would be disabled on Windows 7 / 2008 R2 / PowerShell 2 rather than upgraded
+* Removed service disablement during upgrade process
+* Fixed registry null values on Windows 7 / 2008 R2 / PowerShell 2
+* Added option to prevent change of service behavior
+* Fixed false positive error when script being run offline
+* Fixed bug where `switch` type parameter was being tested for boolean values rather than the .IsPresent field
+* Fixed bug where logging was being called incorrectly, leading to null values when writing to the event log
+* Updated reference for SolarWinds MSP to N-Able
+
+
+# 2020-02-20
 *   Registration token install method:
     *   Activation Key methods for upgrades
     *   Registration Key methods for new installs/repairs
