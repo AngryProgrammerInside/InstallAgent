@@ -84,9 +84,9 @@ else {
 
 Write-Host "Launched InstallAgent with PID: $($p.Id), waiting on Exit"
 $RegPaths = @{
-    Summary      = "HKLM:\SOFTWARE\N-Able Community\InstallAgent"
-    Installation = "HKLM:\SOFTWARE\N-Able Community\InstallAgent\Installation"
-    Diagnosis    = "HKLM:\SOFTWARE\N-Able Community\InstallAgent\Diagnosis"
+    Summary      = "HKLM:\SOFTWARE\N-able Community\InstallAgent"
+    Installation = "HKLM:\SOFTWARE\N-able Community\InstallAgent\Installation"
+    Diagnosis    = "HKLM:\SOFTWARE\N-able Community\InstallAgent\Diagnosis"
 }
 
 while (-not $p.HasExited) {

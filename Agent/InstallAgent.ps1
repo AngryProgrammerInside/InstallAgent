@@ -1,6 +1,6 @@
 ﻿# Installation, Diagnostic and Repair Script for the N-Central Agent
 # Original Script Created by Tim Wiser
-# Maintained by the N-Able Community
+# Maintained by the N-able Community
 
 ################################
 ########## Change Log ##########
@@ -195,7 +195,7 @@ if ($DebugMode.IsPresent) {
   if (Get-Module InstallAgent-Core) {
     Remove-Module InstallAgent-Core
   }
-  $AgentRegPath = "HKLM:\SOFTWARE\N-Able Community\InstallAgent"
+  $AgentRegPath = "HKLM:\SOFTWARE\N-able Community\InstallAgent"
   if (Test-Path $AgentRegPath) {
     Remove-Item $AgentRegPath -Recurse -Force
   }
@@ -219,8 +219,8 @@ $NC.InstallParameters = @{
 }
 # Path Constants
 $NC.Paths = @{
-  "BinFolder"      = "N-Able Technologies\Windows Agent\bin"
-  "ConfigFolder"   = "N-Able Technologies\Windows Agent\config"
+  "BinFolder"      = "N-able Technologies\Windows Agent\bin"
+  "ConfigFolder"   = "N-able Technologies\Windows Agent\config"
   "UninstallKey32" = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
   "UninstallKey64" = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
 }
@@ -486,7 +486,7 @@ $SC.Names = @{
 }
 # Path Constants
 $SC.Paths = @{
-  "ExecutionKey" = "HKLM:\SOFTWARE\N-Able Community"
+  "ExecutionKey" = "HKLM:\SOFTWARE\N-able Community"
   "ServiceKey"   = "HKLM:\SYSTEM\CurrentControlSet\Services"
   "TempFolder"   = Split-Path $MyInvocation.MyCommand.Path -Parent
 }
