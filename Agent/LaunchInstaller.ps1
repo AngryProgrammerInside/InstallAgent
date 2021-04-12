@@ -3,7 +3,7 @@ param (
 )
 ### 1.0.0 on 2021-02-21 - David Brooks, Premier Technology Solutions
 ### 1.0.1 on 2021-03-23 - Robby Swartenbroekx, b-inside bv
-##################################################################
+####################################################################
 # - Adapted updated Batch file version of InstallAgent to PowerShell
 Write-Host "CustomerID: $($args[0])" -ForegroundColor Green
 Write-Host "Token: $($args[1])" -ForegroundColor Green
