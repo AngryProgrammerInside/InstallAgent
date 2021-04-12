@@ -197,7 +197,7 @@ if ($DebugMode.IsPresent) {
     Remove-Module InstallAgent-Core
   }
   $AgentRegPath = "HKLM:\SOFTWARE\N-Able Community\InstallAgent"
-  if (Test-Path $AgentRegPath){
+  if (Test-Path $AgentRegPath) {
     Remove-Item $AgentRegPath -Recurse -Force
   }
 }
@@ -580,11 +580,10 @@ $SC.Validation = @{
 }
 ### Retired Values - PLACE RETIRED VALUES HERE TO CLEANUP OLD SCRIPT ENTRIES
 $SC.Paths.Old = @{
-  "ExecutionKeySolarWinds"    = "HKLM:\SOFTWARE\SolarWinds MSP Community"
-  "ExecutionKeyTim" = "HKLM:\SOFTWARE\Tim Wiser"
-  "ExecutionKey"    = "HKLM:\SOFTWARE\N-Central"
-  "EventKey"        = "HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\InstallAgent"
-  "ExecutionKeySWC" = "HKLM:\SOFTWARE\Solarwinds MSP Community"
+  "ExecutionKeySolarWinds" = "HKLM:\SOFTWARE\SolarWinds MSP Community"
+  "ExecutionKeyTim"        = "HKLM:\SOFTWARE\Tim Wiser"
+  "ExecutionKey"           = "HKLM:\SOFTWARE\N-Central"
+  "EventKey"               = "HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\InstallAgent"
 }
 
 function GetCustomInstallMethods {
