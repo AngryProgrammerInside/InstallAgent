@@ -1147,9 +1147,9 @@ function ValidateExecution {
     $Script.Execution.ScriptMode =
     switch ($Install.Sources.Demand.Path) {
         $Install.Sources.Network.Path
-        { $SC.ExecutionMode.B; break }
+        { if ([Security.Principal.WindowsIdentity]::GetCurrent().IsSystem) { $SC.ExecutionMode.B } else { $SC.ExecutionMode.A }; break }
         $Install.Sources.Sysvol.Path
-        { $SC.ExecutionMode.B; break }
+        { if ([Security.Principal.WindowsIdentity]::GetCurrent().IsSystem) { $SC.ExecutionMode.B } else { $SC.ExecutionMode.A }; break }
         Default
         { $SC.ExecutionMode.A; break }
     }
