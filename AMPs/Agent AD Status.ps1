@@ -1,7 +1,6 @@
 #region AMP startup variable. This region isn't in the the AMP itself.
 $NetworkFolder = "Agent"
-# Following is to test on a non DC server, because it can't find it.
-# $NetLogonShare = ""
+$GPOName = "n-able - Install Agent (PS)"
 #endregion
 
 # Get the path based on the NetLogon share
@@ -32,3 +31,6 @@ Catch {
     $CustomerID = 0
     $RegistrationToken = "ERROR: PartnerConfig.xml file not found"
 }
+
+$GPOInstalled = 0
+$GPOInstalled = (get-gpo -name $GPOName -ErrorAction ignore).Count
