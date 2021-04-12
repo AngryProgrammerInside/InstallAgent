@@ -5,7 +5,7 @@
 # - Partner Configuration File for the InstallAgent Automation Suite
 #   by Ryan Crowther Jr, RADCOMP Technologies - 2019-08-26
 # - Original Configuration File (InstallAgent.ini) by Jon Czerwinski, Cohn Consulting Corp. - 2017-01-20
-# Maintained by the MSP Community
+# Maintained by the N-Able Community
 # File Version - 6.0.1
 
 # USAGE
@@ -22,7 +22,7 @@ Required Values CANNOT be left blank (the Event Log will inform you of this). Ad
 and/or Recommendations may be added here with regard to new Configuration Values.
 -->
 <Config>
-<Version>6.0.1</Version>
+  <Version>6.0.1</Version>
   <Branding>
     <!-- [OPTIONAL - (Business Contact Info)] Partner Contact Information to display in the Event Log
   when a Documented Error occurs -->
