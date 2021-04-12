@@ -84,9 +84,9 @@ else {
 
 Write-Host "Launched InstallAgent with PID: $($p.Id), waiting on Exit"
 $RegPaths = @{
-    Summary      = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent"
-    Installation = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent\Installation"
-    Diagnosis    = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent\Diagnosis"
+    Summary      = "HKLM:\SOFTWARE\N-Able MSP Community\InstallAgent"
+    Installation = "HKLM:\SOFTWARE\N-Able MSP Community\InstallAgent\Installation"
+    Diagnosis    = "HKLM:\SOFTWARE\N-Able MSP Community\InstallAgent\Diagnosis"
 }
 
 while (-not $p.HasExited) {

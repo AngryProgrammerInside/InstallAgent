@@ -46,7 +46,7 @@
 - [Credits](#credits)
 
 ## Introduction
-This is a community-based Automation Suite intended as a replacement for the stock N-central Group Policy Installer Script as provided by N-able. It is not supported by SolarWinds MSP or N-able, so please do not contact their support department regarding any problems or questions about this script. In addition, please do not contact the support departments of any individual Partners in the SolarWinds MSP Community regarding the Automation Suite or its components.
+This is a community-based Automation Suite intended as a replacement for the stock N-central Group Policy Installer Script as provided by N-able. It is not supported by N-able, so please do not contact their support department regarding any problems or questions about this script. In addition, please do not contact the support departments of any individual Partners in the N-Able MSP Community regarding the Automation Suite or its components.
 
 ## Status of Suite
 All scripts in the suite have been run and tested as functional. It is currently considered in a 'beta' phase while wider testing is being performed.
@@ -519,8 +519,8 @@ To get a better idea of exactly how damaged this installation is, we can supplem
 
 Values are logged and regularly updated by the **Deployment Package** during execution, at the following keys and their children:
 
-*   **HKLM:\SOFTWARE\SolarWinds MSP Community\LaunchInstaller** - For values logged by the **Agent Setup Launcher**
-*   **HKLM:\SOFTWARE\SolarWinds MSP Community\InstallAgent** - For values logged by the **Agent Setup Script**
+*   **HKLM:\SOFTWARE\N-Able MSP Community\LaunchInstaller** - For values logged by the **Agent Setup Launcher**
+*   **HKLM:\SOFTWARE\N-Able MSP Community\InstallAgent** - For values logged by the **Agent Setup Script**
 
 Therefore, you can poll this data at any time and get a sense of what the **Deployment Package** is doing or has done **both during and after execution.** The next section details the Registry Keys and Values that appear here.
 
@@ -699,9 +699,9 @@ When you upgrade your N-central Server, you will need to update all your **Deplo
 1 -   Update the *(Typical)SOAgentVersion* and *(Typical)SOAgentFileVersion* values in the **Partner Configuration** file so the Package will require the new Agent be installed
 2 -   Replace the existing System-Level Agent Installer in the *(Typical)InstallFolder* with one downloaded from your newly-upgraded N-Central Server (Actions > Download Agent/Probe Software > System Software)
 
-**Don't forget to make sure the *(Typical)SOAgentFileName* matches,** in case SolarWinds MSP ever decides to change the default name of the file!
+**Don't forget to make sure the *(Typical)SOAgentFileName* matches,** in case N-Able MSP ever decides to change the default name of the file!
 
-TIP - There are several partners on the SolarWinds MSP discussion forum who have implemented Automation Policies or Scripts that are designed to ease this task, so we strongly recommend that you grab the most suitable one for your needs.
+TIP - There are several partners on the N-Able MSP discussion forum who have implemented Automation Policies or Scripts that are designed to ease this task, so we strongly recommend that you grab the most suitable one for your needs.
 
 # Credits
 
@@ -722,4 +722,4 @@ Special Thanks go to the following Partners and Community Members for their cont
     *   **Deployment Package** PowerShell/Batch/AMP feature updates from 5.0.1 to 6.0.0 and documentation
 *   Kelvin Tegelaar of Lime Networks 
     *   **AzNableProxy** Created and updated the AzNableProxy service for Azure used in this package
-*   All Partners and SolarWinds MSP Community Members who have helped and contributed ideas to this **Automation Suite**
+*   All Partners and N-Able MSP Community Members who have helped and contributed ideas to this **Automation Suite**

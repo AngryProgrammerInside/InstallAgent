@@ -1,10 +1,19 @@
 ﻿# Installation, Diagnostic and Repair Script for the N-Central Agent
 # Original Script Created by Tim Wiser
+<<<<<<< HEAD
 # Maintained by the N-Able MSP Community
+=======
+# Maintained by the NAble MSP Community
+>>>>>>> 2433bd2bcae3a803c12bf6e8cd3b3eaa97034778
 
 ################################
 ########## Change Log ##########
 ################################
+
+### 6.0.1 on 2021-04-12 - David Brooks & Robby Swartenbroekx
+##################################################################
+# Moved Script Execution Registry Key to HKLM:\SOFTWARE\NAble MSP Community
+# Added Registry Key "HKLM:\SOFTWARE\Solarwinds MSP Community" to the cleanup part
 
 ### 6.0.0 on 2021-02-01 - David Brooks
 ##################################################################
@@ -191,8 +200,13 @@ if ($DebugMode.IsPresent) {
   if (Get-Module InstallAgent-Core) {
     Remove-Module InstallAgent-Core
   }
+<<<<<<< HEAD
   $AgentRegPath = "HKLM:\SOFTWARE\N-Able MSP Community\InstallAgent"
   if (Test-Path $AgentRegPath){
+=======
+  $AgentRegPath = "HKLM:\SOFTWARE\NAble MSP Community\InstallAgent"
+  if (Test-Path $AgentRegPath) {
+>>>>>>> 2433bd2bcae3a803c12bf6e8cd3b3eaa97034778
     Remove-Item $AgentRegPath -Recurse -Force
   }
 }
@@ -309,88 +323,88 @@ $SC.ExitTypes = @{
   "E" = "Report This Error"
 }
 $SC.Exit = @{
-  "Error"  = @{
+  "Error" = @{
     "ExitResult" = "Undocumented Error (See Event Log)"
     "ExitType"   = $SC.ExitTypes.E
   }
-  "A"      = @{
+  "A"     = @{
     "ExitResult" = $SC.SuccessScriptResult
     "ExitType"   = $SC.ExitTypes.A
   }
-  "B"      = @{
+  "B"     = @{
     "ExitResult" = "Partner Configuration File is Missing"
     "ExitType"   = $SC.ExitTypes.B
   }
-  "C"      = @{
+  "C"     = @{
     "ExitResult" = "Partner Configuration is Invalid"
     "ExitType"   = $SC.ExitTypes.B
   }
-  "D"      = @{
+  "D"     = @{
     "ExitResult" = "No Installation Sources Available"
     "ExitType"   = $SC.ExitTypes.B
   }
-  "E"      = @{
+  "E"     = @{
     "ExitResult" = "Installer File is Missing"
     "ExitType"   = $SC.ExitTypes.B
   }
-  "F"      = @{
+  "F"     = @{
     "ExitResult" = "Installer Version Mismatch"
     "ExitType"   = $SC.ExitTypes.B
   }
-  "G"      = @{
+  "G"     = @{
     "ExitResult" = ("Unable to Reach " + $NC.Products.NCServer.Name)
     "ExitType"   = $SC.ExitTypes.C
   }
-  "H"      = @{
+  "H"     = @{
     "ExitResult" = "Customer ID Parameter Required"
     "ExitType"   = $SC.ExitTypes.B
   }
-  "I"      = @{
+  "I"     = @{
     "ExitResult" = "Customer ID Parameter Invalid"
     "ExitType"   = $SC.ExitTypes.B
   }
-  "J"      = @{
+  "J"     = @{
     "ExitResult" = "Windows Installer Service Unavailable"
     "ExitType"   = $SC.ExitTypes.D
   }
-  "K"      = @{
+  "K"     = @{
     "ExitResult" = ".NET Framework Installation Failed"
     "ExitType"   = $SC.ExitTypes.D
   }
-  "L"      = @{
+  "L"     = @{
     "ExitResult" = "Agent Removal Failed"
     "ExitType"   = $SC.ExitTypes.D
   }
-  "M"      = @{
+  "M"     = @{
     "ExitResult" = "No Installation Methods Remaining"
     "ExitType"   = $SC.ExitTypes.D
   }
-  "AA"     = @{
+  "AA"    = @{
     "ExitMessage" = "An invalid Parameter value or type was provided to a Script Function."
     "ExitResult"  = "Invalid Parameter"
     "ExitType"    = $SC.ExitTypes.E
   }
-  "AB"     = @{
+  "AB"    = @{
     "ExitMessage" = ("The current " + $NC.Products.Agent.Name + " installation requires repair, but no Repairs were selected to be applied.")
     "ExitResult"  = "No Repairs Selected"
     "ExitType"    = $SC.ExitTypes.E
   }
-  "AC"     = @{
+  "AC"    = @{
     "ExitMessage" = "An error occurred during a file transfer and the Script cannot proceed."
     "ExitResult"  = "File Transfer Failed"
     "ExitType"    = $SC.ExitTypes.E
   }
-  "AD"     = @{
+  "AD"    = @{
     "ExitMessage" = "The file at the specified path does not exist."
     "ExitResult"  = "File Not Found"
     "ExitType"    = $SC.ExitTypes.E
   }
-  "AE"     = @{
+  "AE"    = @{
     "ExitMessage" = "An error occurred during item creation and the Script cannot proceed."
     "ExitResult"  = "File/Folder Creation Failed"
     "ExitType"    = $SC.ExitTypes.E
   }
-  "AF" = @{
+  "AF"    = @{
     "ExitMessage" = "The agent could not be installed on this legacy platform."
     "ExitResult"  = "Legacy installation unavailable"
     "ExitType"    = $SC.ExitTypes.E
@@ -482,7 +496,11 @@ $SC.Names = @{
 }
 # Path Constants
 $SC.Paths = @{
+<<<<<<< HEAD
   "ExecutionKey" = "HKLM:\SOFTWARE\N-Able MSP Community"
+=======
+  "ExecutionKey" = "HKLM:\SOFTWARE\NAble MSP Community"
+>>>>>>> 2433bd2bcae3a803c12bf6e8cd3b3eaa97034778
   "ServiceKey"   = "HKLM:\SYSTEM\CurrentControlSet\Services"
   "TempFolder"   = Split-Path $MyInvocation.MyCommand.Path -Parent
 }
@@ -579,10 +597,11 @@ $SC.Paths.Old = @{
   "ExecutionKeyTim" = "HKLM:\SOFTWARE\Tim Wiser"
   "ExecutionKey"    = "HKLM:\SOFTWARE\N-Central"
   "EventKey"        = "HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\InstallAgent"
+  "ExecutionKeySWC" = "HKLM:\SOFTWARE\Solarwinds MSP Community"
 }
 
 function GetCustomInstallMethods {
-# An empty function for a partner to override and update/insert custom install information
+  # An empty function for a partner to override and update/insert custom install information
 }
 
 
