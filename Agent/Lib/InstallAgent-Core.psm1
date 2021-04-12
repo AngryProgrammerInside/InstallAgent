@@ -1136,11 +1136,19 @@ function ValidateExecution {
                 $Config.NetworkFolder, $Config.InstallFolder
             ) -join '\'
         }
+        "Sysvol"  = @{
+            "Path" = @(
+                "\", $Device.FQDN, "sysvol" , $Device.FQDN, "scripts",
+                $Config.NetworkFolder, $Config.InstallFolder
+            ) -join '\'
+        }
     }
     ### Determine Execution Mode
     $Script.Execution.ScriptMode =
     switch ($Install.Sources.Demand.Path) {
         $Install.Sources.Network.Path
+        { $SC.ExecutionMode.B; break }
+        $Install.Sources.Sysvol.Path
         { $SC.ExecutionMode.B; break }
         Default
         { $SC.ExecutionMode.A; break }
@@ -1455,7 +1463,8 @@ function QueryServices {
             ) -notcontains $false
         )
         { $true } else { $false }
-    } else {
+    }
+    else {
         $Agent.Health.ServicesBehaviorCorrect = $true
     }
     # Agent Services Running
