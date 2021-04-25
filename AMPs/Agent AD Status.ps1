@@ -1,12 +1,9 @@
 #region AMP startup variable. This region isn't in the the AMP itself.
 $NetworkFolder = "Agent"
 $GPOName = "n-able - Install Agent (PS)"
+$NetLogonShare = "C:\Windows\SYSVOL\domain\scripts" # This is gathered inside the AMP
 #endregion
 
-# Get the path based on the NetLogon share
-$NetLogonShare = (get-smbshare -name NetLogon -ErrorAction SilentlyContinue).Path
-# Failsafe to try it with a hardcoded version if no NetLogon share is found
-If (-not $NetLogonShare) { $NetLogonShare = "C:\Windows\SYSVOL\domain\scripts" }
 $PartnerConfigFile = $NetLogonShare + "\" + $NetworkFolder + "\PartnerConfig.xml"
 
 Try {
@@ -32,5 +29,10 @@ Catch {
     $RegistrationToken = "ERROR: PartnerConfig.xml file not found"
 }
 
-$GPOInstalled = 0
-$GPOInstalled = (get-gpo -name $GPOName -ErrorAction ignore).Count
+$OSVersion = [system.environment]::OSVersion.Version
+$GPOInstalled = if (($OSVersion.Major -eq 10) -or (($OSVersion.Major -eq 6) -and ($OSVersion.Minor -ge 2))) {
+    (get-gpo -name $GPOName -ErrorAction ignore).Count
+}
+else {
+    -1
+}
