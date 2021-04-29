@@ -415,7 +415,7 @@ function GetDeviceInfo {
     [String] $Device.OSName = ($WMIos.Caption).Trim().Replace("Microsoftr", "Microsoft").Replace("Serverr", "Server").Replace("Windowsr", "Windows")
     [Version] $Device.OSBuild =
     if ($null -eq $WMIos.Version)
-    { ($PSVersionTable.BuildVersion.ToString() }
+    { ($PSVersionTable.BuildVersion.ToString()) }
     else
     { $WMIos.Version }
     # Operating System Architecture
