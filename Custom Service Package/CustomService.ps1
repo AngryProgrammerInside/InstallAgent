@@ -16,7 +16,7 @@ $AgentRegPath = "HKLM:\SOFTWARE\N-Able Community\InstallAgent"
 $OldAgentRegPath = "HKLM:\SOFTWARE\SolarWinds MSP Community\InstallAgent"
 if (Test-Path $AgentRegPath){
     $Path = $AgentRegPath 
-} elseif (Test-Path $OldAgentRegPath) {
+} else {
     $Path = $OldAgentRegPath 
 }
 

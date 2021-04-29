@@ -656,7 +656,7 @@ function ValidatePartnerConfig {
     $Config.LocalFolder = $Partner.Config.Deployment.LocalFolder
     $Config.NetworkFolder = $Partner.Config.Deployment.NetworkFolder
     # Installer Values
-    if ($Device.OSBuild -gt "6.1") {
+    if ($Device.OSBuild -ge "6.1") {
         # Use Typical (Latest) Agent
         $InstallInfo = $Partner.Config.Deployment.Typical
     }
