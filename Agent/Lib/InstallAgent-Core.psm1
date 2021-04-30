@@ -2475,7 +2475,7 @@ function SelectInstallers {
     ForEach-Object {
         $CurrentSourceName = $_
         $CurrentSource = $Install.Sources.$_
-        if (($CurrentSourceName -eq "Network") -and ($Install.NETLOGONAccess -eq $false)) {
+        if (($CurrentSourceName -eq "Network" -or $CurrentSourceName -eq "Sysvol") -and ($Install.NETLOGONAccess -eq $false)) {
             $CurrentSource.Available = $false
             $CurrentSource.AgentFound = $false
             $CurrentSource.AgentValid = $false
