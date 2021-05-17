@@ -1,6 +1,6 @@
 # Development and Debugging
 ## Overview
-The PowerShell version of the InstallAgent package is uses highly structured, robust code with validation and logging at every step, these characteristics make it suitable for use in broad rollouts from small to enterprise businesses.
+The PowerShell version of the InstallAgent package uses a highly structured, robust coding methodology with validation and logging at every step, these characteristics make it suitable for use in broad rollouts from small to enterprise businesses.
 
 While it has many positive attributes it can be difficult to approach when re-developing or debugging. So let's provide a high level view of how the script would run under normal circumstances and highlighting the important parts:
 
@@ -11,7 +11,7 @@ While this doesn't represent all the functions inside of the InstallAgent-Core.p
 ## Challenges and starting debugging
 There are a number of challenges that you can run into when developing code for the InstallAgent package:
 *   The Installagent.ps1 and the folder structure is intended to self delete after running, as it's intended to be run temporarily from C:\Windows\Temp\AGPO after the LaunchInstaller.bat/ps1 copies it there from the Netlogon/Source folder.
-*   Functions in InstallAgent-Core.psm1 depend upon variables declared in InstallAgent.ps1 that exist in Script scope, this is opposed to functions that is passed parameters and all variables are private to it's scope
+*   Functions in InstallAgent-Core.psm1 depend upon variables declared in InstallAgent.ps1 that exist in Script scope, this is opposed to functions that are passed passed parameters and all variables are private to it's scope
 *   Functions will populate a number of variables with hashtables, their fields names and types are not declared anywhere in code.
 
 The latter challanges are necessary artifacts caused by the constraints in PowerShell 2.0, to debug this code efficiently and cross reference variables it is necessary to use an IDE like Visual Studio Code or PowerShell ISE.
@@ -20,7 +20,7 @@ A point to set a debug point to see all the variables/tables populated and in a 
 
 Next either populate the PartnerConfig as outlined in the ReadMe.md and/or run the InstallAgent.ps1 with CustomerID/Token parameters, it's important to run the script with the dot source operator (period) and run it inside the [current session scope](https://devblogs.microsoft.com/powershell/powershell-constrained-language-mode-and-the-dot-source-operator/)
 
-. .\InstallAgent.ps1 -CustomerID *CustomerID* -RegistrationToken *RegistrationToken* -LauncherPath C:\Repos\Agent\
+`. .\InstallAgent.ps1 -CustomerID CustomerID -RegistrationToken RegistrationToken -LauncherPath C:\Repos\Agent\ -DebugMode`
 
 Also make sure the LauncherPath parameter has a trailing \ otherwise it will cause issues. Once done you can explore all the variables in memory, and run some of the built in debug commands that provide a Gridview of useful tables:
 *   DebugGetMethods
@@ -171,10 +171,38 @@ The first thing we should note here is this is an `else`, not an `elseif` so we'
 *   the value is not a CustomerID, followed by a pipe, then no token, again an artifact of constructing the `CustomerID|Token` that is later used in the `InstallAgent` function for Registration Key methods
 
 ## DiagnoseAgent function
+The DiagnoseAgent function is one of the larger and more complicated functions so we'll provide a high level overview of how this works:
+*  It initialises the `$Agent.Appliance` which holds the current appliance health and the `$Agent.Docs` variables where de-serialized versions of the ApplianceConfig.xml, the Install Log and a copy of the Agent install registry keys are placed while they are parsed and the health of the Agent determined.
+* As the files and registry are loaded into the `$Agent.Docs` they are validated against regex expressions found under the `$SC.Validation` variable declared in the InstallAgent.ps1 file. If any part of the agent documents fail the regex test, the script will halt later on and provide information on the failed document.
+* The next section then builds the Activation Key/Appliance ID from available parts if they're available, by building the activation key we can perform ugprades on existing installs while specify the appliance ID, reducing the chance of generic installs resulting in a database mismatch.
+* The agent history file is updated with the token data and the health of the agent services are checked
+* The ApplianceID and version of the agent is checked, if the agent version is less than the target version then it is flagged for an update
+* Connectivity to the Partner N-Central server is checked, if it isn't available only limited repairs can be done as a connection to the N-Central server is required for installs or upgrades.
+* A summary of the Agent health is placed in a hash table inside teh $Agent.Health.AgentStatus variable
+* The agent status is logged for the final event log output
+* If the agent is healthy and there is nothing to be done, the script ends, otherwise it proceeds to the next phases of repair or re-install
+
 ## RequestAzWebProxyToken function
-## Discussion of important tables and what they do
-## Discussion about Custom Modules
-## Debug Commands and what they do
+RequestAzWebProxyToken is new to 6.0.0 and leverages Kelvin Tegelaar's AzNableProxy to retrieve the registration token securely from your on N-Central server without exposing API keys.
+
+To retrieve this token the function will:
+* Create a URI from the partner configured values in the variables `$Config.AznableProxyUri` and `$Config.AzNableAuthCode`
+* A PowerShell 3.0 Invoke-Webrequest method is called to retrieve the registration token. While technically the script is meant to be PowerShell 2.0 compatible there is a broader discussion on the security of PowerShell 2.0 and the age of the OS being used if it is 2.0. While it is possible to use a `[System.Net.WebClient]` method to download the registration token, that would be associated with TLS1.0 and you would need to make a concious security decision to use that legacy protocol.
+* The retrieved token is checked to determine if it is a valid GUID
+* If the chosen install method is of a type that requests converting to an encoded install key, it is created, otherwise the token is provided raw to the `$Install.ChosenMethod.Value`
+## Custom Modules
+The default InstallAgent-Core.psm1 module provides the default behaviors, and now includes AzNableProxy token lookup by default.
+
+By using custom modules that override default functions you can achieve most any features you need for edge case deployments. This works because of the order in which the modules are loaded, for example the new `RequestAzWebProxyToken` has certain default behaviors that may not be suitable for your environment, by loading a custom module after the inital InstallAgent-Core.psm1 that has a function with the same name, the custom module you created will supercede the default `RequestAzWebProxyToken`
+
+Once you've created your new module/files, place it in the Agent\Lib folder and update the $SC.Names.LibraryFiles array in the InstallAgent.ps1 file.
+
+Examples of what can be achieved is illustrated with the following files within the Custom Library folder:
+
+GetCustomInstallMethodExamples.psm1 - Demonstrates how you can provide a custom Install Method information back to the correct Hashtable
+CustomOverrideExample.psm1 - Demonstrates how you can
+Add additional telemetry when calling the AzNableProxy GET function with a few extra lines of code
+Deliver detailed telemetry on Exit or Failure with a few extra lines of code
 ## Appendices: Detail on example tables of importance
 ### $Config
 The `$Config` table is the variable to which the values of the **PartnerConfig.xml** is assigned, this is a 1:1 mapping of the Keys and Values.

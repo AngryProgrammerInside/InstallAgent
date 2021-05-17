@@ -3082,7 +3082,7 @@ function RequestAzWebProxyToken {
     $Uri = "https://$($Config.AzNableProxyUri)/api/Get?Code=$($Config.AzNableAuthCode)&ID="
     try {
         $Uri += "$($Install.ChosenMethod.Value)"
-        $Response = Invoke-RestMethod -Uri $Uri
+        $Response = (Invoke-WebRequest -Method GET -Uri $Uri).Content
     }
     catch {
         $Out = "Error retrieving token from $Uri using $($Install.ChosenMethod.Name)"
