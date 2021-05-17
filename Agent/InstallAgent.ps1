@@ -1,10 +1,14 @@
 ﻿# Installation, Diagnostic and Repair Script for the N-Central Agent
 # Original Script Created by Tim Wiser
-# Maintained by the Solarwinds MSP Community
+# Maintained by the N-able Community
 
 ################################
 ########## Change Log ##########
 ################################
+
+### 6.0.1 on 2021-04-12 - David Brooks & Robby Swartenbroekx
+##################################################################
+# See ReleaseNotes.md for all the changes
 
 ### 6.0.0 on 2021-02-01 - David Brooks
 ##################################################################
@@ -80,7 +84,7 @@
 # HOUSEKEEPING
 # - Re-published Change Log with most recent developments up top and some basic Categories for
 #   updates
-# - Moved Script Execution Registry Key to HKLM:\SOFTWARE\Solarwinds MSP Community
+# - Moved Script Execution Registry Key to HKLM:\SOFTWARE\SolarWinds MSP Community
 # - Added a Legacy Version Cleanup section which will automatically remove values/files created by
 #   older versions of the Script (Huge thanks to Tim and Jon for their contributions!)
 #
@@ -191,8 +195,8 @@ if ($DebugMode.IsPresent) {
   if (Get-Module InstallAgent-Core) {
     Remove-Module InstallAgent-Core
   }
-  $AgentRegPath = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent"
-  if (Test-Path $AgentRegPath){
+  $AgentRegPath = "HKLM:\SOFTWARE\N-able Community\InstallAgent"
+  if (Test-Path $AgentRegPath) {
     Remove-Item $AgentRegPath -Recurse -Force
   }
 }
@@ -215,8 +219,8 @@ $NC.InstallParameters = @{
 }
 # Path Constants
 $NC.Paths = @{
-  "BinFolder"      = "N-Able Technologies\Windows Agent\bin"
-  "ConfigFolder"   = "N-Able Technologies\Windows Agent\config"
+  "BinFolder"      = "N-able Technologies\Windows Agent\bin"
+  "ConfigFolder"   = "N-able Technologies\Windows Agent\config"
   "UninstallKey32" = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
   "UninstallKey64" = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
 }
@@ -286,7 +290,7 @@ $SC = @{
   }
   "RunningInstanceTimeout" = 30
   "ScriptEventLog"         = "Application"
-  "ScriptVersion"          = "6.0.0"
+  "ScriptVersion"          = "6.0.1"
   "SuccessScriptAction"    = "Graceful Exit"
   "SuccessScriptResult"    = "Script Completed Successfully"
 }
@@ -309,88 +313,88 @@ $SC.ExitTypes = @{
   "E" = "Report This Error"
 }
 $SC.Exit = @{
-  "Error"  = @{
+  "Error" = @{
     "ExitResult" = "Undocumented Error (See Event Log)"
     "ExitType"   = $SC.ExitTypes.E
   }
-  "A"      = @{
+  "A"     = @{
     "ExitResult" = $SC.SuccessScriptResult
     "ExitType"   = $SC.ExitTypes.A
   }
-  "B"      = @{
+  "B"     = @{
     "ExitResult" = "Partner Configuration File is Missing"
     "ExitType"   = $SC.ExitTypes.B
   }
-  "C"      = @{
+  "C"     = @{
     "ExitResult" = "Partner Configuration is Invalid"
     "ExitType"   = $SC.ExitTypes.B
   }
-  "D"      = @{
+  "D"     = @{
     "ExitResult" = "No Installation Sources Available"
     "ExitType"   = $SC.ExitTypes.B
   }
-  "E"      = @{
+  "E"     = @{
     "ExitResult" = "Installer File is Missing"
     "ExitType"   = $SC.ExitTypes.B
   }
-  "F"      = @{
+  "F"     = @{
     "ExitResult" = "Installer Version Mismatch"
     "ExitType"   = $SC.ExitTypes.B
   }
-  "G"      = @{
+  "G"     = @{
     "ExitResult" = ("Unable to Reach " + $NC.Products.NCServer.Name)
     "ExitType"   = $SC.ExitTypes.C
   }
-  "H"      = @{
+  "H"     = @{
     "ExitResult" = "Customer ID Parameter Required"
     "ExitType"   = $SC.ExitTypes.B
   }
-  "I"      = @{
+  "I"     = @{
     "ExitResult" = "Customer ID Parameter Invalid"
     "ExitType"   = $SC.ExitTypes.B
   }
-  "J"      = @{
+  "J"     = @{
     "ExitResult" = "Windows Installer Service Unavailable"
     "ExitType"   = $SC.ExitTypes.D
   }
-  "K"      = @{
+  "K"     = @{
     "ExitResult" = ".NET Framework Installation Failed"
     "ExitType"   = $SC.ExitTypes.D
   }
-  "L"      = @{
+  "L"     = @{
     "ExitResult" = "Agent Removal Failed"
     "ExitType"   = $SC.ExitTypes.D
   }
-  "M"      = @{
+  "M"     = @{
     "ExitResult" = "No Installation Methods Remaining"
     "ExitType"   = $SC.ExitTypes.D
   }
-  "AA"     = @{
+  "AA"    = @{
     "ExitMessage" = "An invalid Parameter value or type was provided to a Script Function."
     "ExitResult"  = "Invalid Parameter"
     "ExitType"    = $SC.ExitTypes.E
   }
-  "AB"     = @{
+  "AB"    = @{
     "ExitMessage" = ("The current " + $NC.Products.Agent.Name + " installation requires repair, but no Repairs were selected to be applied.")
     "ExitResult"  = "No Repairs Selected"
     "ExitType"    = $SC.ExitTypes.E
   }
-  "AC"     = @{
+  "AC"    = @{
     "ExitMessage" = "An error occurred during a file transfer and the Script cannot proceed."
     "ExitResult"  = "File Transfer Failed"
     "ExitType"    = $SC.ExitTypes.E
   }
-  "AD"     = @{
+  "AD"    = @{
     "ExitMessage" = "The file at the specified path does not exist."
     "ExitResult"  = "File Not Found"
     "ExitType"    = $SC.ExitTypes.E
   }
-  "AE"     = @{
+  "AE"    = @{
     "ExitMessage" = "An error occurred during item creation and the Script cannot proceed."
     "ExitResult"  = "File/Folder Creation Failed"
     "ExitType"    = $SC.ExitTypes.E
   }
-  "LEGACY" = @{
+  "AF"    = @{
     "ExitMessage" = "The agent could not be installed on this legacy platform."
     "ExitResult"  = "Legacy installation unavailable"
     "ExitType"    = $SC.ExitTypes.E
@@ -482,7 +486,7 @@ $SC.Names = @{
 }
 # Path Constants
 $SC.Paths = @{
-  "ExecutionKey" = "HKLM:\SOFTWARE\Solarwinds MSP Community"
+  "ExecutionKey" = "HKLM:\SOFTWARE\N-able Community"
   "ServiceKey"   = "HKLM:\SYSTEM\CurrentControlSet\Services"
   "TempFolder"   = Split-Path $MyInvocation.MyCommand.Path -Parent
 }
@@ -575,13 +579,14 @@ $SC.Validation = @{
 }
 ### Retired Values - PLACE RETIRED VALUES HERE TO CLEANUP OLD SCRIPT ENTRIES
 $SC.Paths.Old = @{
-  "ExecutionKeyTim" = "HKLM:\SOFTWARE\Tim Wiser"
-  "ExecutionKey"    = "HKLM:\SOFTWARE\N-Central"
-  "EventKey"        = "HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\InstallAgent"
+  "ExecutionKeySolarWinds" = "HKLM:\SOFTWARE\SolarWinds MSP Community"
+  "ExecutionKeyTim"        = "HKLM:\SOFTWARE\Tim Wiser"
+  "ExecutionKey"           = "HKLM:\SOFTWARE\N-Central"
+  "EventKey"               = "HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\InstallAgent"
 }
 
 function GetCustomInstallMethods {
-# An empty function for a partner to override and update/insert custom install information
+  # An empty function for a partner to override and update/insert custom install information
 }
 
 

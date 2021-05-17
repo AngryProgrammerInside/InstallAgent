@@ -2,7 +2,8 @@ param (
     [Switch]$Monitor
 )
 ### 1.0.0 on 2021-02-21 - David Brooks, Premier Technology Solutions
-##################################################################
+### 1.0.1 on 2021-03-23 - Robby Swartenbroekx, b-inside bv
+####################################################################
 # - Adapted updated Batch file version of InstallAgent to PowerShell
 Write-Host "CustomerID: $($args[0])" -ForegroundColor Green
 Write-Host "Token: $($args[1])" -ForegroundColor Green
@@ -76,12 +77,16 @@ if ($null -eq $p) {
     Write-EventLog -EntryType Error -EventId 13 -LogName Application -Source $LauncherScript -Message  "$SetupScript encountered an error starting the launcher" > $null
     Exit 2
 }
+else {
+    Write-Host "Successfully launched $TempFolder\InstallAgent.ps1 with $($args.Count) arguments" -ForegroundColor Green
+    Write-EventLog -EntryType Information -EventId 10 -LogName Application -Source $LauncherScript -Message  "Successfully launched $TempFolder\InstallAgent.ps1 with $($args.Count) arguments" > $null
+}
 
 Write-Host "Launched InstallAgent with PID: $($p.Id), waiting on Exit"
 $RegPaths = @{
-    Summary      = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent"
-    Installation = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent\Installation"
-    Diagnosis    = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent\Diagnosis"
+    Summary      = "HKLM:\SOFTWARE\N-able Community\InstallAgent"
+    Installation = "HKLM:\SOFTWARE\N-able Community\InstallAgent\Installation"
+    Diagnosis    = "HKLM:\SOFTWARE\N-able Community\InstallAgent\Diagnosis"
 }
 
 while (-not $p.HasExited) {
@@ -92,7 +97,8 @@ while (-not $p.HasExited) {
             Write-Host "Progress: " -ForegroundColor Green -NoNewline
             Get-ItemProperty $RegPaths.Summary | Select-Object * -ExcludeProperty PS* | Format-List *
         }
-    } else {
+    }
+    else {
         Start-Sleep 10
     }
 }

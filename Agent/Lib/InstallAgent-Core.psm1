@@ -1,6 +1,6 @@
 ﻿# Core Functions for the Agent Setup Script (InstallAgent.ps1)
-# Last Revised:   2021-02-21
-# Module Version: 6.0.0
+# Last Revised:   2021-03-23
+# Module Version: 6.0.1
 
 ### INITIALIZATION FUNCTIONS
 ###############################
@@ -84,7 +84,7 @@ function AlphaValue {
     param ($Value, [Switch] $2Digit)
     ### Function Body
     ###############################
-    if ($2Digit -eq $true)
+    if ($2Digit.IsPresent -eq $true)
     { return ("A" + [String]([Char]($Value - 35))) }
     else
     { return ([String]([Char]($Value + 65))) }
@@ -200,10 +200,13 @@ function Log {
     )
     ### Parameter Validation
     ###############################
-    if ($EndSequence -eq $true)
+    # Notes:
+    # If you are ending a sequence, log the EndSequence with no other parameters
+    # Always submit an EventType, Code and Message if you are not calling the end sequence
+    if ($EndSequence.IsPresent -eq $true)
     { <# Other Parameters are not Required #> }
     else { 
-        if ($BeginSequence -eq $true) {
+        if ($BeginSequence.IsPresent -eq $true) {
             # EventType and Code are not Required
             $EventType = "Information"
             $Code = 0
@@ -264,7 +267,7 @@ function Log {
     }
     ### Function Body
     ###############################
-    if ($EndSequence -eq $false) {
+    if ($EndSequence.IsPresent -eq $false) {
         ### Update Script Event Level
         $Script.Results.ErrorLevel =
         switch ($Script.Results.ErrorLevel) {
@@ -281,14 +284,14 @@ function Log {
     if ($Script.Sequence.Order -notcontains $Script.Execution.ScriptSequence)
     { $Script.Sequence.Order += @($Script.Execution.ScriptSequence) }
     # Determine the Sequence Status
-    if ($BeginSequence -eq $true) {
+    if ($BeginSequence.IsPresent -eq $true) {
         $Status = $SC.SequenceStatus.C
         # Add Sequence Header Before Detail Message
         $Script.Results.Details +=
         ("--== " + $Script.Execution.ScriptSequence + " ==--"),
         $Message
     }
-    if (($BeginSequence -eq $false) -and ($EndSequence -eq $false)) {
+    if (($BeginSequence.IsPresent -eq $false) -and ($EndSequence.IsPresent -eq $false)) {
         $Status =
         switch ($Code) {
             0
@@ -301,7 +304,7 @@ function Log {
         # Add Detail Message to Current Sequence
         $Script.Results.Details += @("`n" + $Message)
     }
-    if ($EndSequence -eq $true) {
+    if ($EndSequence.IsPresent -eq $true) {
         # Change Status to COMPLETE Unless Otherwise Specified
         $Status =
         if ($Script.Sequence.Status[-1] -eq $SC.SequenceStatus.C)
@@ -318,10 +321,10 @@ function Log {
         { ($Script.Sequence.Status)[$SelectedStatus] = $Status }
     }
     # Update the Registry Sequence Status if Required
-    if (@($BeginSequence, $EndSequence) -contains $true)
+    if (@($BeginSequence.IsPresent, $EndSequence.IsPresent) -contains $true)
     { WriteKey $Script.Results.ScriptKey $Script.Execution }
     ### Terminate if Requested
-    if ($Exit -eq $true) { Quit $Code }
+    if ($Exit.IsPresent -eq $true) { Quit $Code }
 }
 
 function CatchError {
@@ -361,7 +364,7 @@ function CatchError {
         ($ExcMsg -join "`n")
     }
     Log E $Code $Out
-    if ($Exit -eq $true) { Quit $Code }
+    if ($Exit.IsPresent -eq $true) { Quit $Code }
 }
 
 function GetDeviceInfo {
@@ -412,7 +415,7 @@ function GetDeviceInfo {
     [String] $Device.OSName = ($WMIos.Caption).Trim().Replace("Microsoftr", "Microsoft").Replace("Serverr", "Server").Replace("Windowsr", "Windows")
     [Version] $Device.OSBuild =
     if ($null -eq $WMIos.Version)
-    { (Get-CimInstance Win32_OperatingSystem).Version }
+    { ($PSVersionTable.BuildVersion.ToString()) }
     else
     { $WMIos.Version }
     # Operating System Architecture
@@ -421,7 +424,10 @@ function GetDeviceInfo {
         if ($Device.OSName -like "*64*")
         { "64-bit" } else { "32-bit" }
     }
-    else { $WMIos.OSArchitecture }
+    else {
+        if ($WMIos.OSArchitecture -like "*64*")
+        { "64-bit" } else { "32-bit" }
+    }
     # Program Files Location
     [String] $Device.PF32 =
     if ($Device.Architecture -eq "64-bit")
@@ -591,13 +597,13 @@ function ValidateItem {
     ### Function Body
     ###############################
     $RequiredType =
-    if ($Folder -eq $true)
+    if ($Folder.IsPresent -eq $true)
     { "Container" } else { "Leaf" }
     $ImposterType =
-    if ($Folder -eq $true)
+    if ($Folder.IsPresent -eq $true)
     { "Leaf" } else { "Container" }
     $NewItemType =
-    if ($Folder -eq $true)
+    if ($Folder.IsPresent -eq $true)
     { "Directory" } else { "File" }
     $Path |
     ForEach-Object {
@@ -605,13 +611,13 @@ function ValidateItem {
         # Check for and Remove Imposters
         if ((Test-Path $p -PathType $ImposterType) -eq $true)
         { Remove-Item $p -Recurse -Force 2>$null }
-        if ($NoNewItem -eq $false) {
+        if ($NoNewItem.IsPresent -eq $false) {
             # Create an Empty Item if Required
             if ((Test-Path $p) -eq $false)
             { New-Item $p -ItemType $NewItemType -Force >$null 2>$null }
         }
         $ValidateResult +=
-        if ($RemoveItem -eq $true) {
+        if ($RemoveItem.IsPresent -eq $true) {
             Remove-Item $p -Recurse -Force 2>$null
             @((Test-Path $p) -eq $false)
         }
@@ -650,7 +656,7 @@ function ValidatePartnerConfig {
     $Config.LocalFolder = $Partner.Config.Deployment.LocalFolder
     $Config.NetworkFolder = $Partner.Config.Deployment.NetworkFolder
     # Installer Values
-    if ($Device.OSBuild -gt "6.1") {
+    if ($Device.OSBuild -ge "6.1") {
         # Use Typical (Latest) Agent
         $InstallInfo = $Partner.Config.Deployment.Typical
     }
@@ -659,7 +665,7 @@ function ValidatePartnerConfig {
         # Legacy support no longer available, error out
         $InstallInfo = $Partner.Config.Deployment.Legacy
         $Out = "Name-Central Agent for Windows is no longer supported on Vista/2008 and earlier"
-        Log "LEGACY" 2 $Out -Exit
+        Log E 19 $Out -Exit
     }
     $Config.InstallFolder = $InstallInfo.InstallFolder
     $Config.AgentFile = $InstallInfo.SOAgentFileName
@@ -672,6 +678,8 @@ function ValidatePartnerConfig {
     $Config.NETFile = $InstallInfo.NETFileName
     $Config.NETVersion = $InstallInfo.NETVersion
     $Config.NETFileVersion = $InstallInfo.NETFileVersion
+    $Config.EnforceBehaviorPolicy = $Partner.Config.ServiceBehavior.EnforcePolicy
+
     ### Function Body
     ###############################
     ### Validate Required Items from Partner Configuration
@@ -1128,12 +1136,20 @@ function ValidateExecution {
                 $Config.NetworkFolder, $Config.InstallFolder
             ) -join '\'
         }
+        "Sysvol"  = @{
+            "Path" = @(
+                "\", $Device.FQDN, "sysvol" , $Device.FQDN, "scripts",
+                $Config.NetworkFolder, $Config.InstallFolder
+            ) -join '\'
+        }
     }
     ### Determine Execution Mode
     $Script.Execution.ScriptMode =
     switch ($Install.Sources.Demand.Path) {
         $Install.Sources.Network.Path
-        { $SC.ExecutionMode.B; break }
+        { if ([Security.Principal.WindowsIdentity]::GetCurrent().IsSystem) { $SC.ExecutionMode.B } else { $SC.ExecutionMode.A }; break }
+        $Install.Sources.Sysvol.Path
+        { if ([Security.Principal.WindowsIdentity]::GetCurrent().IsSystem) { $SC.ExecutionMode.B } else { $SC.ExecutionMode.A }; break }
         Default
         { $SC.ExecutionMode.A; break }
     }
@@ -1408,44 +1424,49 @@ function QueryServices {
     if ($Agent.Services.Data.Values -notcontains $null)
     { $true } else { $false }
     # Agent Services Failure Behavior Configured
-    $Agent.Health.ServicesBehaviorCorrect =
-    if (
-        (
-            $Agent.Services.Failure.GetEnumerator() |
-            ForEach-Object {
-                switch ($_) {
-                    { $null -eq $_.Value }
-                    { $false; break }
-                    {
-                        (
+    if ($Config.EnforceBehaviorPolicy -eq $true) {
+        $Agent.Health.ServicesBehaviorCorrect =
+        if (
+            (
+                $Agent.Services.Failure.GetEnumerator() |
+                ForEach-Object {
+                    switch ($_) {
+                        { $null -eq $_.Value }
+                        { $false; break }
+                        {
                             (
                                 (
-                                    $_.Value.Actions.GetEnumerator() |
-                                    ForEach-Object {
-                                        if ($null -ne $_.Value)
-                                        { $_.Value.Split()[0] -eq $Config.$("ServiceAction" + $_.Name) }
-                                        else { $false }
-                                    }
-                                ) -notcontains $false
-                            ) -and
-                            (
+                                    (
+                                        $_.Value.Actions.GetEnumerator() |
+                                        ForEach-Object {
+                                            if ($null -ne $_.Value)
+                                            { $_.Value.Split()[0] -eq $Config.$("ServiceAction" + $_.Name) }
+                                            else { $false }
+                                        }
+                                    ) -notcontains $false
+                                ) -and
                                 (
-                                    $_.Value.Delays.GetEnumerator() |
-                                    ForEach-Object { $_.Value -eq $Config.$("ServiceDelay" + $_.Name) }
-                                ) -notcontains $false
-                            ) -and
-                            ($_.Value.Reset -eq $Config.ServiceReset) -and
-                            ($_.Value.Command -eq $Config.ServiceCommand)
-                        )
+                                    (
+                                        $_.Value.Delays.GetEnumerator() |
+                                        ForEach-Object { $_.Value -eq $Config.$("ServiceDelay" + $_.Name) }
+                                    ) -notcontains $false
+                                ) -and
+                                ($_.Value.Reset -eq $Config.ServiceReset) -and
+                                ($_.Value.Command -eq $Config.ServiceCommand)
+                            )
+                        }
+                        { $true; break }
+                        Default
+                        { $false; break }
                     }
-                    { $true; break }
-                    Default
-                    { $false; break }
                 }
-            }
-        ) -notcontains $false
-    )
-    { $true } else { $false }
+            ) -notcontains $false
+        )
+        { $true } else { $false }
+    }
+    else {
+        $Agent.Health.ServicesBehaviorCorrect = $true
+    }
     # Agent Services Running
     $Agent.Health.ServicesRunning =
     if (
@@ -1600,7 +1621,7 @@ function DiagnoseAgent {
             break
         }
         $SC.SequenceNames.E {
-            if ($NoLog -eq $false)
+            if ($NoLog.IsPresent -eq $false)
             { Log I 0 "Re-Checking Agent Health after Install Action..." }
             break
         }
@@ -1648,11 +1669,12 @@ function DiagnoseAgent {
         Where-Object { $_.DisplayName -eq $NC.Products.Agent.WindowsName }
     ).PSPath
     if ($null -ne $Agent.Path.Registry) {
-        $Agent.Docs.Registry =
+        $RegistryTable = @{}
         Get-ItemProperty $Agent.Path.Registry |
         Get-Member -MemberType NoteProperty |
         Select-Object -ExpandProperty Name |
-        ForEach-Object { @{ $_ = (Get-ItemProperty $Agent.Path.Registry).$_ } }
+        ForEach-Object { $RegistryTable.Add($_, (Get-ItemProperty $Agent.Path.Registry).$_) }
+        $Agent.Docs.Registry = $RegistryTable
     }
     ### Get Info About Last Known Installation (in case Agent is Missing)
     if ((Test-Path $Agent.Path.History -PathType Leaf) -eq $true) {
@@ -1842,7 +1864,7 @@ function DiagnoseAgent {
     }
     else { $false }
     # Log Discovered Agent Status
-    if (($Agent.Health.Installed -eq $true) -and ($NoLog -eq $false)) {
+    if (($Agent.Health.Installed -eq $true) -and ($NoLog.IsPresent -eq $false)) {
         $Out = @("Found:")
         $Out += @(
             switch ($Agent.Appliance) {
@@ -1891,7 +1913,7 @@ function DiagnoseAgent {
     }
     else { $false }
     ### Verify Connectivity to Partner Server
-    if ($NoServerCheck -eq $false)
+    if ($NoServerCheck.IsPresent -eq $false)
     { TestNCServer }
     ### Check if Installed Agent Server Address matches Partner Configuration
     $Agent.Health.AssignedToPartnerServer =
@@ -1929,7 +1951,7 @@ function DiagnoseAgent {
     $Script.Execution.AgentLastDiagnosed = Get-Date -UFormat $SC.DateFormat.Full
     WriteKey $Script.Results.ScriptDiagnosisKey $Agent.Health
     # Identify/Log Needed Repairs
-    if ($NoLog -eq $false) {
+    if ($NoLog.IsPresent -eq $false) {
         $Out = @("Current Agent Status is " + $Agent.Health.AgentStatus + ":")
         $Out += @(
             switch ($Agent.Health.AgentStatus) {
@@ -1957,7 +1979,8 @@ function DiagnoseAgent {
     # Determine Sequence Behavior After Diagnosis
     if (($Agent.Health.AgentStatus -eq $SC.ApplianceStatus.A) -and ($Script.Sequence.Order[-1] -eq $SC.SequenceNames.C)) {
         # No Further Action Required After Initial Diagnosis
-        Log -EndSequence -Code 0 -Exit
+        Log -EndSequence
+        Log I -Code 0 -Message "No Further Action Required After Initial Diagnosis - Exiting" -Exit
     }
     # Proceed to Next Sequence or Return to Current Sequence
 }
@@ -2050,7 +2073,7 @@ function FixServices {
     $Agent.Services.Data.Keys |
     ForEach-Object {
         $s = $_
-        if ($Disable -eq $true) {
+        if ($Disable.IsPresent -eq $true) {
             ### Stop and Disable the Services Instead
             & SC.EXE CONFIG "$s" START= "Disabled" >$null 2>$null
             & TASKKILL.EXE /PID $Agent.Processes.$s.ID /F >$null 2>$null
@@ -2062,7 +2085,7 @@ function FixServices {
                 switch ($Agent.Services.Data.$s.State) {
                     "Running" {
                         # Service Running - Attempt to Restart Only if Specified
-                        if ($Restart -eq $true) {
+                        if ($Restart.IsPresent -eq $true) {
                             & TASKKILL.EXE /PID $Agent.Processes.$s.ID /F >$null 2>$null
                             if (@(0, 128) -contains $LASTEXITCODE) {
                                 Get-Service -Name $s | Stop-Service 2>$null -WarningAction SilentlyContinue
@@ -2107,7 +2130,7 @@ function FixServices {
             }
         }
     }
-    if ($Disable -eq $false) {
+    if ($Disable.IsPresent -eq $false) {
         # Re-Check Service/Process Status After Repair
         $RepairResult = VerifyServices
         # Complete the Repair unless it Otherwise Failed
@@ -2386,8 +2409,8 @@ function RepairAgent {
                         }
                     }
                 )
-                Log I 0 $Out
-                Log -EndSequence -Code 0 -Exit
+                Log -EndSequence
+                Log I 0 $Out -Exit
             }
             Default {
                 $Out = @(
@@ -2452,7 +2475,7 @@ function SelectInstallers {
     ForEach-Object {
         $CurrentSourceName = $_
         $CurrentSource = $Install.Sources.$_
-        if (($CurrentSourceName -eq "Network") -and ($Install.NETLOGONAccess -eq $false)) {
+        if (($CurrentSourceName -eq "Network" -or $CurrentSourceName -eq "Sysvol") -and ($Install.NETLOGONAccess -eq $false)) {
             $CurrentSource.Available = $false
             $CurrentSource.AgentFound = $false
             $CurrentSource.AgentValid = $false
@@ -2960,6 +2983,7 @@ function RemoveAgent {
     DiagnoseAgent -NoLog -NoServerCheck
     if ($Agent.Health.Installed -eq $true) {
         # Exit - Agent Removal Failed
+        FixServices -Restart
         $Out = (
             "MSI Removal of the existing " + $NC.Products.Agent.Name + " failed. " +
             "Manual forcible removal is required for the Script to continue."
@@ -3058,7 +3082,7 @@ function RequestAzWebProxyToken {
     $Uri = "https://$($Config.AzNableProxyUri)/api/Get?Code=$($Config.AzNableAuthCode)&ID="
     try {
         $Uri += "$($Install.ChosenMethod.Value)"
-        $Response = Invoke-RestMethod -Uri $Uri
+        $Response = (Invoke-WebRequest -Method GET -Uri $Uri).Content
     }
     catch {
         $Out = "Error retrieving token from $Uri using $($Install.ChosenMethod.Name)"

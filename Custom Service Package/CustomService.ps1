@@ -12,8 +12,15 @@ function ReadKey {
     }
 }
 
-$AgentRegPath = "HKLM:\SOFTWARE\Solarwinds MSP Community\InstallAgent"
-$InstallAgentResults = ReadKey $AgentRegPath
+$AgentRegPath = "HKLM:\SOFTWARE\N-Able Community\InstallAgent"
+$OldAgentRegPath = "HKLM:\SOFTWARE\SolarWinds MSP Community\InstallAgent"
+if (Test-Path $AgentRegPath){
+    $Path = $AgentRegPath 
+} else {
+    $Path = $OldAgentRegPath 
+}
+
+$InstallAgentResults = ReadKey $Path
 
 # These value is almost always present
 $AgentLastDiagnosed = if ($null -ne $InstallAgentResults.AgentLastDiagnosed) { $InstallAgentResults.AgentLastDiagnosed }else { Get-Date 1900 }
