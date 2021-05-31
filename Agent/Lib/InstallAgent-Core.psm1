@@ -679,6 +679,7 @@ function ValidatePartnerConfig {
     $Config.NETVersion = $InstallInfo.NETVersion
     $Config.NETFileVersion = $InstallInfo.NETFileVersion
     $Config.EnforceBehaviorPolicy = $Partner.Config.ServiceBehavior.EnforcePolicy
+    $Config.ForceAgentCleanup = $Partner.Config.ScriptBehavior.ForceAgentCleanup
 
     ### Function Body
     ###############################
@@ -2982,13 +2983,39 @@ function RemoveAgent {
     # Verify Removal was Successful
     DiagnoseAgent -NoLog -NoServerCheck
     if ($Agent.Health.Installed -eq $true) {
-        # Exit - Agent Removal Failed
-        FixServices -Restart
-        $Out = (
-            "MSI Removal of the existing " + $NC.Products.Agent.Name + " failed. " +
-            "Manual forcible removal is required for the Script to continue."
-        )
-        Log E 11 $Out -Exit
+
+        #If the forced removal of the agent is enabled
+        if ($Config.ForceAgentCleanup) {
+            $FAC = New-Object System.Diagnostics.ProcessStartInfo ($env:windir + "\system32\cmd.exe")
+            $FAC.UseShellExecute = $false
+            $FAC.CreateNoWindow = $true
+            $FAC.Arguments = ('/C "' + $Script.Path.AgentCleanup + '"')
+            # Run the forced cleanup
+            [System.Diagnostics.Process]::Start($FAC).WaitForExit() >$null
+
+            # Verify Removal was Successful again
+            DiagnoseAgent -NoLog -NoServerCheck
+
+            if ($Agent.Health.Installed -eq $true) {
+                # Exit - Agent Removal Failed
+                FixServices -Restart
+                $Out = (
+                    "Forced and MSI Removal of the existing " + $NC.Products.Agent.Name + " failed. " +
+                    "Manual forcible removal is required for the Script to continue."
+                )
+                Log E 11 $Out -Exit
+            }
+        } else {
+            # Exit - Agent Removal Failed
+            FixServices -Restart
+            $Out = (
+                "MSI Removal of the existing " + $NC.Products.Agent.Name + " failed. " +
+                "Manual forcible removal is required for the Script to continue."
+            )
+            Log E 11 $Out -Exit
+        }
+        # If forced removal successful, flag existing agent removal as true
+        $Install.ExistingAgentRemoved = $true
     }
     else
     { $Install.ExistingAgentRemoved = $true }
