@@ -39,8 +39,10 @@ help@mymsp.com
     <!-- [REQUIRED - (1-60)] Amount of time (in minutes) to wait for the Windows Installer Service
   while another installation is in progress -->
     <InstallTimeoutPeriod>5</InstallTimeoutPeriod>    <!-- Default Value is 5 -->
-        <!-- [RECOMMENDED - (True)] - If there are issues with the MSI uninstall of the previous version, perform a cleanup -->
+        <!-- [REQUIRED - (True)] - If there are issues with the MSI uninstall of the previous version, perform a cleanup -->
   <ForceAgentCleanup>True</ForceAgentCleanup>
+  <!-- [REQUIRED - (True)] - If true enables fallback from ICMP to HTTP/S lookup of the WSDL endpoint for network verification 
+  and pre-install server verification -->
   <UseWSDLVerification>True</UseWSDLVerification>
   </ScriptBehavior>
   <Server>
