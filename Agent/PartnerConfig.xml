@@ -41,6 +41,7 @@ help@mymsp.com
     <InstallTimeoutPeriod>5</InstallTimeoutPeriod>    <!-- Default Value is 5 -->
         <!-- [RECOMMENDED - (True)] - If there are issues with the MSI uninstall of the previous version, perform a cleanup -->
   <ForceAgentCleanup>True</ForceAgentCleanup>
+  <UseWSDLVerification>True</UseWSDLVerification>
   </ScriptBehavior>
   <Server>
     <!-- [REQUIRED - (URL Without Protocol)] Your N-Central Server Address (get this from the

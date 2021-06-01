@@ -680,6 +680,7 @@ function ValidatePartnerConfig {
     $Config.NETFileVersion = $InstallInfo.NETFileVersion
     $Config.EnforceBehaviorPolicy = $Partner.Config.ServiceBehavior.EnforcePolicy
     $Config.ForceAgentCleanup = $Partner.Config.ScriptBehavior.ForceAgentCleanup
+    $Config.UseWSDLVerifcation = $Partner.Config.ScriptBehavior.UseWSDLVerification
 
     ### Function Body
     ###############################
@@ -1596,6 +1597,27 @@ function TestNCServer {
         }
     }
     # Check if Agent has Connectivity to Server in Partner Configuration
+
+    if ($Config.UseWSDLVerifcation -and $NCResult -eq $false) {
+        $client = New-Object System.Net.WebClient
+        try {
+            $response = $client.DownloadString("https://$($Config.NCServerAddress)/dms2/services2/ServerEI2?wsdl")
+            $xmlResponse = [xml]$response
+            if ($xmlResponse.definitions.service.port.address.location -eq "https://$($Config.NCServerAddress)/dms2/services2/ServerEI2"){
+                $Flag = "W"
+                $Out = ("Device failed ping test, but succeeded on WSDL verification method for " + $NC.Products.NCServer.Name + ", script will proceed with online activities")             
+                Log $Flag 0 $Out
+            } else{
+                $Out = ("WSDL verification failed. Expected: https://$($Config.NCServerAddress)/dms2/services2/ServerEI2 Received:$($xmlResponse.definitions.service.port.address.location)")             
+                Log W 0 $Out
+
+            }
+        } catch {
+            $Out = ("WSDL verification method for " + $NC.Products.NCServer.Name + "failed, Offline Repairs will be performed possible until connectivity is restored.")             
+            Log W 0 $Out   
+        }
+    }
+
     $Install.NCServerAccess =
     if ($null -ne $Flag)
     { $true } else { $false }
@@ -3005,7 +3027,8 @@ function RemoveAgent {
                 )
                 Log E 11 $Out -Exit
             }
-        } else {
+        }
+        else {
             # Exit - Agent Removal Failed
             FixServices -Restart
             $Out = (
@@ -3148,6 +3171,28 @@ function InstallAgent {
     WriteKey $Script.Results.ScriptKey $Script.Execution
     ### Function Body
     ###############################
+    ### Perform WSDL verfication before attempting any install or removal
+    if ($Config.UseWSDLVerifcation) {
+        $client = New-Object System.Net.WebClient
+        try {
+            $response = $client.DownloadString("https://$($Config.NCServerAddress)/dms2/services2/ServerEI2?wsdl")
+            $xmlResponse = [xml]$response
+            if ($xmlResponse.definitions.service.port.address.location -eq "https://$($Config.NCServerAddress)/dms2/services2/ServerEI2"){
+                $Flag = "I"
+                $Out = ("WSDL verification succeeded, proceeding with installation actions.")             
+                Log $Flag 0 $Out
+            } else {
+                $Flag = "E"
+                $Out = ("WSDL verification failed. Expected: https://$($Config.NCServerAddress)/dms2/services2/ServerEI2 Received:$($xmlResponse.definitions.service.port.address.location). Terminating install")             
+                Log $Flag 13 $Out -Exit
+            }
+        } catch {
+            $Flag = "E"
+            $Out = ("WSDL verification method for " + $NC.Products.NCServer.Name + "failed prior to install. Terminating install.")             
+            Log $Flag 13 $Out -Exit  
+        }
+    }
+
     ### Attempt Agent Installation
     for (
         $Install.ChosenMethod.FailedAttempts = 0
