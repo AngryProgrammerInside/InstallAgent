@@ -680,7 +680,7 @@ function ValidatePartnerConfig {
     $Config.NETFileVersion = $InstallInfo.NETFileVersion
     $Config.EnforceBehaviorPolicy = if ($Partner.Config.ServiceBehavior.EnforcePolicy -like "True") {$true} else {$false}
     $Config.ForceAgentCleanup = if ($Partner.Config.ScriptBehavior.ForceAgentCleanup -like "True") {$true} else {$false}
-    $Cofig.UseWSDLVerifcation = if ($Partner.Config.ScriptBehavior.UseWSDLVerification -like "True") {$true} else {$false}
+    $Config.UseWSDLVerifcation = if ($Partner.Config.ScriptBehavior.UseWSDLVerification -like "True") {$true} else {$false}
 
     ### Function Body
     ###############################
@@ -1598,7 +1598,7 @@ function TestNCServer {
     }
     # Check if Agent has Connectivity to Server in Partner Configuration
 
-    if ($Cofig.UseWSDLVerifcation -and $NCResult -eq $false) {
+    if ($Config.UseWSDLVerifcation -and $NCResult -eq $false) {
         $client = New-Object System.Net.WebClient
         try {
             $response = $client.DownloadString("https://$($Config.NCServerAddress)/dms2/services2/ServerEI2?wsdl")
@@ -3170,7 +3170,7 @@ function InstallAgent {
     ### Function Body
     ###############################
     ### Perform WSDL verfication before attempting any install or removal
-    if ($Cofig.UseWSDLVerifcation) {
+    if ($Config.UseWSDLVerifcation) {
         $client = New-Object System.Net.WebClient
         try {
             $response = $client.DownloadString("https://$($Config.NCServerAddress)/dms2/services2/ServerEI2?wsdl")
