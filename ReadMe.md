@@ -2,9 +2,11 @@
 
 ## Table of Contents
 - [InstallAgent Automation Suite](#installagent-automation-suite)
-  * [Table of Contents](#table-of-contents)
   * [Introduction](#introduction)
-  * [New and improved Features since AgentDeploymentPackage in 6.0.0](#new-and-improved-features-since-agentdeploymentpackage-in-600)
+  * [Status of Suite](#status-of-suite)
+  * [Release notes for 6.0.2](#release-notes-for-602)
+  * [Release notes for 6.0.1](#release-notes-for-601)
+  * [New and improved Features in AgentDeploymentPackage 6.0.0](#new-and-improved-features-in-agentdeploymentpackage-600)
   * [Key Features](#key-features)
 - [The "Registration Token" - Agent Deployment and Considerations](#the--registration-token----agent-deployment-and-considerations)
   * [History](#history)
@@ -28,6 +30,7 @@
   * [1a - Setup the N-Central Custom Service (Version 6.xx)](#1a---setup-the-n-central-custom-service--version-6xx-)
   * [1b - Setup AMP based PartnerConfiguration update amps](#1b---setup-amp-based-partnerconfiguration-update-amps)
   * [1c - Setup AMP based PartnerConfiguration update amps](#1c---setup-amp-based-partnerconfiguration-update-amps)
+  * [1d - Setup AMP based monitoring of the PartnerConfig.xml file](#1d---setup-amp-based-monitoring-of-the-partnerconfigxml-file)
     + [Update PartnerConfig from CP](#update-partnerconfig-from-cp)
     + [Update PartnerConfig from JWT](#update-partnerconfig-from-jwt)
   * [2 - Review Deployment Package Results](#2---review-deployment-package-results)
@@ -48,20 +51,27 @@
 ## Introduction
 This is a community-based Automation Suite intended as a replacement for the stock N-central Group Policy Installer Script as provided by N-able. It is not supported by N-able, so please do not contact their support department regarding any problems or questions about this script. In addition, please do not contact the support departments of any individual Partners in the Community regarding the Automation Suite or its components.
 
-## Status of Suite
-All scripts in the suite have been run and tested as functional. It is currently considered in a 'beta' phase while wider testing is being performed.
-
-Feel free to provide feedback and lodge issues and they will be reviewed.
-
-## New and improved Features in AgentDeploymentPackage 6.0.1 (Beta)
-
-This script is a fork of [Ryan Crowther Jr's AgentDeploymentPackage on GitHub](https://github.com/N-able/AgentDeploymentPackage/) and will soon be the future branch going forward as they have moved on to other projects.
+This suite is a fork of [Ryan Crowther Jr's AgentDeploymentPackage on GitHub](https://github.com/N-able/AgentDeploymentPackage/) and will soon be the future branch going forward as they have moved on to other projects.
 
 If you discover a problem with any component of the Automation Suite or have ideas on how it could be improved, [post an issue on GitHub](https://github.com/AngryProgrammerInside/InstallAgent/issues). Alternatively, post on the N-Central Slack Community chat.
 
 These tools are provided as-is, in the best of faith, by those Partners and Community Members involved in their development. If you use this in your environment, we would love to hear from you on GitHub!
 
-## New and improved Features in AgentDeploymentPackage 6.0.1
+## Status of Suite
+All scripts in the suite have been run and tested as functional. It is currently considered in a 'beta' phase while wider testing is being performed.
+
+Feel free to provide feedback and lodge issues and they will be reviewed.
+
+## Release notes for 6.0.2
+* Fixed several small bugs, full [Release Notes](ReleaseNotes.md)
+* Added WSDL endpoint based N-Central Server verification for environments where Echo/ICMP is blocked, or where additional verification that the server N-Central is up and accessible. Enabled by setting the `<UseWSDLVerification>` attribute to **True**
+* Added forced removal/cleanup when bad MSI uninstall information or MSI unable to remove old/rogue agent when needed using the AgentCleanup4.exe. Enabled by setting the `<ForceAgentCleanup>` attribute to **True**
+
+## Release notes for 6.0.1
+* Fixed a large number of bugs, full [Release Notes](ReleaseNotes.md)
+* Added the ability enable/disable service policy enforcement with `<EnforcePolicy>` attribute for service timeouts/restarts. By default is now **False** as the service policy can get overriden by the maintenance service eventually.
+
+## New and improved Features in AgentDeploymentPackage 6.0.0
 
 ![](media/readme-image8.png)
 *   Registration token install method:
