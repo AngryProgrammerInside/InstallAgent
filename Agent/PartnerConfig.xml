@@ -22,7 +22,7 @@ Required Values CANNOT be left blank (the Event Log will inform you of this). Ad
 and/or Recommendations may be added here with regard to new Configuration Values.
 -->
 <Config>
-  <Version>6.0.1</Version>
+  <Version>6.0.2</Version>
   <Branding>
     <!-- [OPTIONAL - (Business Contact Info)] Partner Contact Information to display in the Event Log
   when a Documented Error occurs -->
@@ -33,17 +33,14 @@ help@mymsp.com
     </ErrorContactInfo>
   </Branding>
   <ScriptBehavior>
-    <!-- [RECOMMENDED - (0-60)] Amount of time (in minutes) to wait since the Last System Boot before
-  diagnosing the Agent -->
+    <!-- [RECOMMENDED - (0-60)] Amount of time (in minutes) to wait since the Last System Boot before diagnosing the Agent -->
     <BootTimeWaitPeriod>5</BootTimeWaitPeriod>    <!-- Default Value is 5 -->
-    <!-- [REQUIRED - (1-60)] Amount of time (in minutes) to wait for the Windows Installer Service
-  while another installation is in progress -->
+    <!-- [REQUIRED - (1-60)] Amount of time (in minutes) to wait for the Windows Installer Service while another installation is in progress -->
     <InstallTimeoutPeriod>5</InstallTimeoutPeriod>    <!-- Default Value is 5 -->
-        <!-- [REQUIRED - (True)] - If there are issues with the MSI uninstall of the previous version, perform a cleanup -->
-  <ForceAgentCleanup>True</ForceAgentCleanup>
-  <!-- [REQUIRED - (True)] - If true enables fallback from ICMP to HTTP/S lookup of the WSDL endpoint for network verification 
-  and pre-install server verification -->
-  <UseWSDLVerification>True</UseWSDLVerification>
+    <!-- [REQUIRED - (True)] - If there are issues with the MSI uninstall of the previous version, perform a cleanup -->
+    <ForceAgentCleanup>True</ForceAgentCleanup>
+    <!-- [REQUIRED - (True)] - If true enables fallback from ICMP to HTTP/S lookup of the WSDL endpoint for network verification and pre-install server verification -->
+    <UseWSDLVerification>True</UseWSDLVerification>
   </ScriptBehavior>
   <Server>
     <!-- [REQUIRED - (URL Without Protocol)] Your N-Central Server Address (get this from the
