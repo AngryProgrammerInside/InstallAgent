@@ -612,6 +612,7 @@ $Script = @{
     "Library"     = @($SC.Paths.TempFolder, "Lib") -join '\'
     "PartnerFile" = @($SC.Paths.TempFolder, $SC.Names.PartnerConfig) -join '\'
     "TempFolder"  = $SC.Paths.TempFolder
+    "AgentCleanup" = @($SC.Paths.TempFolder, "AgentCleanup4.exe") -join '\'
   }
   "Results"    = @{
     "EventLog"           = $SC.ScriptEventLog

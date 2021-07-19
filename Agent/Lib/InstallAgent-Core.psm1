@@ -678,7 +678,9 @@ function ValidatePartnerConfig {
     $Config.NETFile = $InstallInfo.NETFileName
     $Config.NETVersion = $InstallInfo.NETVersion
     $Config.NETFileVersion = $InstallInfo.NETFileVersion
-    $Config.EnforceBehaviorPolicy = $Partner.Config.ServiceBehavior.EnforcePolicy
+    $Config.EnforceBehaviorPolicy = if ($Partner.Config.ServiceBehavior.EnforcePolicy -like "True") {$true} else {$false}
+    $Config.ForceAgentCleanup = if ($Partner.Config.ScriptBehavior.ForceAgentCleanup -like "True") {$true} else {$false}
+    $Config.UseWSDLVerifcation = if ($Partner.Config.ScriptBehavior.UseWSDLVerification -like "True") {$true} else {$false}
 
     ### Function Body
     ###############################
@@ -1595,6 +1597,25 @@ function TestNCServer {
         }
     }
     # Check if Agent has Connectivity to Server in Partner Configuration
+
+    if ($Config.UseWSDLVerifcation -and $NCResult -eq $false) {
+        $client = New-Object System.Net.WebClient
+        try {
+            $response = $client.DownloadString("https://$($Config.NCServerAddress)/dms2/services2/ServerEI2?wsdl")
+            $xmlResponse = [xml]$response
+            if ($xmlResponse.definitions.service.port.address.location -eq "https://$($Config.NCServerAddress)/dms2/services2/ServerEI2") {
+                $Flag = "W"
+                $Out = ("Device failed ping test, but succeeded on WSDL verification method for " + $NC.Products.NCServer.Name + ", script will proceed with online activities")             
+                Log $Flag 0 $Out
+            }
+        }
+        catch {
+            $Flag = "W"
+            $Out = ("WSDL verification method for " + $NC.Products.NCServer.Name + "failed, Offline Repairs will be performed possible until connectivity is restored.")             
+            Log $Flag 0 $Out   
+        }
+    }
+
     $Install.NCServerAccess =
     if ($null -ne $Flag)
     { $true } else { $false }
@@ -2982,13 +3003,40 @@ function RemoveAgent {
     # Verify Removal was Successful
     DiagnoseAgent -NoLog -NoServerCheck
     if ($Agent.Health.Installed -eq $true) {
-        # Exit - Agent Removal Failed
-        FixServices -Restart
-        $Out = (
-            "MSI Removal of the existing " + $NC.Products.Agent.Name + " failed. " +
-            "Manual forcible removal is required for the Script to continue."
-        )
-        Log E 11 $Out -Exit
+
+        #If the forced removal of the agent is enabled
+        if ($Config.ForceAgentCleanup) {
+            $FAC = New-Object System.Diagnostics.ProcessStartInfo ($env:windir + "\system32\cmd.exe")
+            $FAC.UseShellExecute = $false
+            $FAC.CreateNoWindow = $true
+            $FAC.Arguments = ('/C "' + $Script.Path.AgentCleanup + '"')
+            # Run the forced cleanup
+            [System.Diagnostics.Process]::Start($FAC).WaitForExit() >$null
+
+            # Verify Removal was Successful again
+            DiagnoseAgent -NoLog -NoServerCheck
+
+            if ($Agent.Health.Installed -eq $true) {
+                # Exit - Agent Removal Failed
+                FixServices -Restart
+                $Out = (
+                    "Forced and MSI Removal of the existing " + $NC.Products.Agent.Name + " failed. " +
+                    "Manual forcible removal is required for the Script to continue."
+                )
+                Log E 11 $Out -Exit
+            }
+        }
+        else {
+            # Exit - Agent Removal Failed
+            FixServices -Restart
+            $Out = (
+                "MSI Removal of the existing " + $NC.Products.Agent.Name + " failed. " +
+                "Manual forcible removal is required for the Script to continue."
+            )
+            Log E 11 $Out -Exit
+        }
+        # If forced removal successful, flag existing agent removal as true
+        $Install.ExistingAgentRemoved = $true
     }
     else
     { $Install.ExistingAgentRemoved = $true }
@@ -3082,7 +3130,7 @@ function RequestAzWebProxyToken {
     $Uri = "https://$($Config.AzNableProxyUri)/api/Get?Code=$($Config.AzNableAuthCode)&ID="
     try {
         $Uri += "$($Install.ChosenMethod.Value)"
-        $Response = (Invoke-WebRequest -Method GET -Uri $Uri).Content
+        $Response = (Invoke-WebRequest -Method GET -Uri $Uri -UseBasicParsing).Content
     }
     catch {
         $Out = "Error retrieving token from $Uri using $($Install.ChosenMethod.Name)"
@@ -3121,6 +3169,30 @@ function InstallAgent {
     WriteKey $Script.Results.ScriptKey $Script.Execution
     ### Function Body
     ###############################
+    ### Perform WSDL verfication before attempting any install or removal
+    if ($Config.UseWSDLVerifcation) {
+        $client = New-Object System.Net.WebClient
+        try {
+            $response = $client.DownloadString("https://$($Config.NCServerAddress)/dms2/services2/ServerEI2?wsdl")
+            $xmlResponse = [xml]$response
+            if ($xmlResponse.definitions.service.port.address.location -eq "https://$($Config.NCServerAddress)/dms2/services2/ServerEI2") {
+                $Flag = "I"
+                $Out = ("WSDL verification succeeded, proceeding with installation actions.")             
+                Log $Flag 0 $Out
+            }
+            else {
+                $Flag = "E"
+                $Out = ("WSDL verification failed. Expected: https://$($Config.NCServerAddress)/dms2/services2/ServerEI2 Received:$($xmlResponse.definitions.service.port.address.location)")             
+                Log $Flag 13 $Out
+            }
+        }
+        catch {
+            $Flag = "E"
+            $Out = ("WSDL verification method for " + $NC.Products.NCServer.Name + "failed prior to install. Terminating install.")             
+            Log $Flag 13 $Out -Exit  
+        }
+    }
+
     ### Attempt Agent Installation
     for (
         $Install.ChosenMethod.FailedAttempts = 0

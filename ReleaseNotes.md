@@ -1,3 +1,10 @@
+# 2021-05-7 - 6.0.2
+* Fixed bug with Invoke-Webrequest not working due to absence of -UseBasicParsing per [#36](https://github.com/AngryProgrammerInside/InstallAgent/issues/36)
+* Added forced removal/cleanup when bad MSI uninstall information or MSI unable to remove old/rogue agent when needed. [#37](https://github.com/AngryProgrammerInside/InstallAgent/issues/37)
+* Added WSDL based server verification for environments where outbound ICMP is disabled [#38](https://github.com/AngryProgrammerInside/InstallAgent/issues/38)
+* Fixed bug with InstallAgent process not being spun off Async unless -Monitor flag used [#39](https://github.com/AngryProgrammerInside/InstallAgent/issues/39)
+* Fixed up Partner Config file validation of True/False attributes
+
 # 2021-04-12 - 6.0.1
 
 ## Fixes
