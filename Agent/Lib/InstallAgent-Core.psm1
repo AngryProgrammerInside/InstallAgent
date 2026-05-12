@@ -1,6 +1,6 @@
 ﻿# Core Functions for the Agent Setup Script (InstallAgent.ps1)
-# Last Revised:   2021-03-23
-# Module Version: 6.0.1
+# Last Revised:   2026-05-12
+# Module Version: 6.0.2
 
 ### INITIALIZATION FUNCTIONS
 ###############################
@@ -235,7 +235,7 @@ function Log {
         if (
             ($null -ne $Message) -and
             (($Message -is [String]) -or
-                ($Message -is [Array]))
+            ($Message -is [Array]))
         ) {
             if ($Message -is [Array])
             { $Message = $Message -join "`n" }
@@ -678,9 +678,9 @@ function ValidatePartnerConfig {
     $Config.NETFile = $InstallInfo.NETFileName
     $Config.NETVersion = $InstallInfo.NETVersion
     $Config.NETFileVersion = $InstallInfo.NETFileVersion
-    $Config.EnforceBehaviorPolicy = if ($Partner.Config.ServiceBehavior.EnforcePolicy -like "True") {$true} else {$false}
-    $Config.ForceAgentCleanup = if ($Partner.Config.ScriptBehavior.ForceAgentCleanup -like "True") {$true} else {$false}
-    $Config.UseWSDLVerifcation = if ($Partner.Config.ScriptBehavior.UseWSDLVerification -like "True") {$true} else {$false}
+    $Config.EnforceBehaviorPolicy = if ($Partner.Config.ServiceBehavior.EnforcePolicy -like "True") { $true } else { $false }
+    $Config.ForceAgentCleanup = if ($Partner.Config.ScriptBehavior.ForceAgentCleanup -like "True") { $true } else { $false }
+    $Config.UseWSDLVerifcation = if ($Partner.Config.ScriptBehavior.UseWSDLVerification -like "True") { $true } else { $false }
 
     ### Function Body
     ###############################
@@ -3317,6 +3317,12 @@ function InstallAgent {
                     break
                 }
             }
+        }
+        else {
+            # Installer did run, but failed. If you came here, there was no running MSI process before the installer started
+            # Make sure all msiexec.exe 's are also cleaned up to at least be able to start a next attempt
+            foreach ($p in @("msiexec")) # I use this version because that way, we can easely add extra processes later
+            { Get-Process -Name $p 2>$null | Stop-Process -Force 2>$null }
         }
     }
     ### Summarize Installation Results

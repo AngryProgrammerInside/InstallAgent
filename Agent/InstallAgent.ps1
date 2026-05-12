@@ -6,6 +6,10 @@
 ########## Change Log ##########
 ################################
 
+### 6.0.2 on 2026-05-12 - David Brooks & Robby Swartenbroekx
+##################################################################
+# See ReleaseNotes.md for all the changes
+
 ### 6.0.1 on 2021-04-12 - David Brooks & Robby Swartenbroekx
 ##################################################################
 # See ReleaseNotes.md for all the changes
@@ -290,7 +294,7 @@ $SC = @{
   }
   "RunningInstanceTimeout" = 30
   "ScriptEventLog"         = "Application"
-  "ScriptVersion"          = "6.0.1"
+  "ScriptVersion"          = "6.0.2"
   "SuccessScriptAction"    = "Graceful Exit"
   "SuccessScriptResult"    = "Script Completed Successfully"
 }
@@ -608,10 +612,10 @@ $Script = @{
   "Invocation" = $MyInvocation.MyCommand.Definition
   "Parameters" = $PSBoundParameters
   "Path"       = @{
-    "InstallDrop" = @($SC.Paths.TempFolder, "Fetch") -join '\'
-    "Library"     = @($SC.Paths.TempFolder, "Lib") -join '\'
-    "PartnerFile" = @($SC.Paths.TempFolder, $SC.Names.PartnerConfig) -join '\'
-    "TempFolder"  = $SC.Paths.TempFolder
+    "InstallDrop"  = @($SC.Paths.TempFolder, "Fetch") -join '\'
+    "Library"      = @($SC.Paths.TempFolder, "Lib") -join '\'
+    "PartnerFile"  = @($SC.Paths.TempFolder, $SC.Names.PartnerConfig) -join '\'
+    "TempFolder"   = $SC.Paths.TempFolder
     "AgentCleanup" = @($SC.Paths.TempFolder, "AgentCleanup4.exe") -join '\'
   }
   "Results"    = @{
