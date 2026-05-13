@@ -27,9 +27,10 @@ and/or Recommendations may be added here with regard to new Configuration Values
     <!-- [OPTIONAL - (Business Contact Info)] Partner Contact Information to display in the Event Log
   when a Documented Error occurs -->
     <ErrorContactInfo>
-b-inside bv
-+32 56 782828
-helpdesk@b-inside.be
+Acme Corp
+Toontown
++1 234 567890
+support@acmecorp.com
     </ErrorContactInfo>
   </Branding>
   <ScriptBehavior>
@@ -46,7 +47,7 @@ helpdesk@b-inside.be
     <!-- [REQUIRED - (URL Without Protocol)] Your N-Central Server Address (get this from the
   SO-Level Administration > Defaults > Appliance Settings > Communication Settings > Server
   Address box) -->
-    <NCServerAddress>n-able.b-inside.be</NCServerAddress>
+    <NCServerAddress>monitor.acmecorp.com</NCServerAddress>
     <!-- [REQUIRED - (0-100)] - Allowed Percentage of Dropped Packets during a Connectivity Test -->
     <PingTolerance>20</PingTolerance>
     <!-- [REQUIRED - (1-100)] - Number of Pings to make during a Connectivity Test -->
