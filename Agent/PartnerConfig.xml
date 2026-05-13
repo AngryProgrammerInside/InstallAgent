@@ -6,7 +6,7 @@
 #   by Ryan Crowther Jr, RADCOMP Technologies - 2019-08-26
 # - Original Configuration File (InstallAgent.ini) by Jon Czerwinski, Cohn Consulting Corp. - 2017-01-20
 # Maintained by the N-able Community
-# File Version - 6.0.1
+# File Version - 6.0.2
 
 # USAGE
 Set your Configuration Values for your Deployment Package here. See the Deployment Steps section of
@@ -27,9 +27,9 @@ and/or Recommendations may be added here with regard to new Configuration Values
     <!-- [OPTIONAL - (Business Contact Info)] Partner Contact Information to display in the Event Log
   when a Documented Error occurs -->
     <ErrorContactInfo>
-My MSP
-(888) MSP-4ALL
-help@mymsp.com
+b-inside bv
++32 56 782828
+helpdesk@b-inside.be
     </ErrorContactInfo>
   </Branding>
   <ScriptBehavior>
@@ -46,7 +46,7 @@ help@mymsp.com
     <!-- [REQUIRED - (URL Without Protocol)] Your N-Central Server Address (get this from the
   SO-Level Administration > Defaults > Appliance Settings > Communication Settings > Server
   Address box) -->
-    <NCServerAddress></NCServerAddress>
+    <NCServerAddress>n-able.b-inside.be</NCServerAddress>
     <!-- [REQUIRED - (0-100)] - Allowed Percentage of Dropped Packets during a Connectivity Test -->
     <PingTolerance>20</PingTolerance>
     <!-- [REQUIRED - (1-100)] - Number of Pings to make during a Connectivity Test -->
@@ -84,7 +84,7 @@ help@mymsp.com
   <Deployment>
     <!-- [REQUIRED - (Local Absolute Folder Path)] Local Retention Folder for Deployment Package and
   Activation Info File - Example - C:\Windows\SecurityThroughObscurity -->
-    <LocalFolder>C:\AGENT</LocalFolder>    <!-- Default Value is C:\AGENT -->
+    <LocalFolder>C:\Temp\AGENT</LocalFolder>    <!-- Default Value is C:\AGENT -->
     <!-- [REQUIRED - (Folder Name)] Root Folder for the Deployment Package -->
     <NetworkFolder>AGENT</NetworkFolder>    <!-- Default Value is AGENT -->
     <Typical>
